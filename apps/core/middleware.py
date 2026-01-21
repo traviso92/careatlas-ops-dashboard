@@ -1,7 +1,49 @@
 """
-Custom middleware for HTMX support.
+Custom middleware for HTMX support and authentication.
 """
-from django.shortcuts import render
+from django.shortcuts import render, redirect
+from django.conf import settings
+from django.urls import reverse
+import re
+
+
+class LoginRequiredMiddleware:
+    """Middleware to require login for all pages except auth URLs."""
+
+    EXEMPT_URLS = [
+        r'^/accounts/',
+        r'^/admin/',
+        r'^/static/',
+        r'^/favicon\.ico$',
+    ]
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+        self.exempt_urls = [re.compile(url) for url in self.EXEMPT_URLS]
+
+    def __call__(self, request):
+        path = request.path_info
+
+        # Check if path is exempt
+        if any(pattern.match(path) for pattern in self.exempt_urls):
+            return self.get_response(request)
+
+        # Check if user is authenticated
+        if not request.user.is_authenticated:
+            return redirect(settings.LOGIN_URL)
+
+        # Check domain restriction
+        if hasattr(settings, 'ALLOWED_EMAIL_DOMAINS') and settings.ALLOWED_EMAIL_DOMAINS:
+            email = getattr(request.user, 'email', '')
+            if email:
+                domain = email.split('@')[-1].lower()
+                allowed = [d.strip().lower() for d in settings.ALLOWED_EMAIL_DOMAINS]
+                if domain not in allowed:
+                    from django.contrib.auth import logout
+                    logout(request)
+                    return redirect('/accounts/login/?error=domain')
+
+        return self.get_response(request)
 
 
 class HTMXMiddleware:
