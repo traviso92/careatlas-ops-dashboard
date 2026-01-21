@@ -2,7 +2,10 @@
 from django.contrib import admin
 from django.urls import path, include
 
+from apps.core.views import health_check
+
 urlpatterns = [
+    path('health/', health_check, name='health_check'),
     path('admin/', admin.site.urls),
     path('accounts/', include('allauth.urls')),
     path('', include('apps.dashboard.urls')),

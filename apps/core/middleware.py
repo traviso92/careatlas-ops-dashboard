@@ -15,6 +15,7 @@ class LoginRequiredMiddleware:
         r'^/admin/',
         r'^/static/',
         r'^/favicon\.ico$',
+        r'^/health/$',
     ]
 
     def __init__(self, get_response):
