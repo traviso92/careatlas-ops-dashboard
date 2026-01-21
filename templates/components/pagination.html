@@ -1,0 +1,60 @@
+{% if total_pages > 1 %}
+<div class="flex justify-center mt-6">
+    <div class="join">
+        <!-- First Page -->
+        {% if page > 2 %}
+        <a href="?page=1{% if query %}&q={{ query }}{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}{% if current_program %}&program={{ current_program }}{% endif %}"
+           class="join-item btn btn-sm"
+           hx-get="?page=1{% if query %}&q={{ query }}{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}{% if current_program %}&program={{ current_program }}{% endif %}"
+           hx-target="#{{ target_id|default:'content' }}"
+           hx-push-url="true">
+            1
+        </a>
+        {% if page > 3 %}
+        <button class="join-item btn btn-sm btn-disabled">...</button>
+        {% endif %}
+        {% endif %}
+
+        <!-- Previous Page -->
+        {% if has_prev %}
+        <a href="?page={{ page|add:'-1' }}{% if query %}&q={{ query }}{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}{% if current_program %}&program={{ current_program }}{% endif %}"
+           class="join-item btn btn-sm"
+           hx-get="?page={{ page|add:'-1' }}{% if query %}&q={{ query }}{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}{% if current_program %}&program={{ current_program }}{% endif %}"
+           hx-target="#{{ target_id|default:'content' }}"
+           hx-push-url="true">
+            {{ page|add:'-1' }}
+        </a>
+        {% endif %}
+
+        <!-- Current Page -->
+        <button class="join-item btn btn-sm btn-active">{{ page }}</button>
+
+        <!-- Next Page -->
+        {% if has_next %}
+        <a href="?page={{ page|add:'1' }}{% if query %}&q={{ query }}{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}{% if current_program %}&program={{ current_program }}{% endif %}"
+           class="join-item btn btn-sm"
+           hx-get="?page={{ page|add:'1' }}{% if query %}&q={{ query }}{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}{% if current_program %}&program={{ current_program }}{% endif %}"
+           hx-target="#{{ target_id|default:'content' }}"
+           hx-push-url="true">
+            {{ page|add:'1' }}
+        </a>
+        {% endif %}
+
+        <!-- Last Page -->
+        {% with last_page_diff=total_pages|add:page|add:"-1" %}
+        {% if page < total_pages|add:'-1' %}
+        {% if page < total_pages|add:'-2' %}
+        <button class="join-item btn btn-sm btn-disabled">...</button>
+        {% endif %}
+        <a href="?page={{ total_pages }}{% if query %}&q={{ query }}{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}{% if current_program %}&program={{ current_program }}{% endif %}"
+           class="join-item btn btn-sm"
+           hx-get="?page={{ total_pages }}{% if query %}&q={{ query }}{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}{% if current_program %}&program={{ current_program }}{% endif %}"
+           hx-target="#{{ target_id|default:'content' }}"
+           hx-push-url="true">
+            {{ total_pages }}
+        </a>
+        {% endif %}
+        {% endwith %}
+    </div>
+</div>
+{% endif %}

@@ -1,0 +1,21 @@
+{% load core_tags %}
+<div class="space-y-4">
+    {% for message in ticket.messages %}
+    <div class="chat {% if message.author == 'System' or message.is_internal %}chat-start{% else %}chat-end{% endif %}">
+        <div class="chat-header mb-1">
+            {{ message.author }}
+            {% if message.is_internal %}
+            <span class="badge badge-ghost badge-xs ml-1">Internal</span>
+            {% endif %}
+            <time class="text-xs opacity-50 ml-2">{{ message.created_at|friendly_date }}</time>
+        </div>
+        <div class="chat-bubble {% if message.is_internal %}chat-bubble-warning{% elif message.author == 'System' %}chat-bubble-info{% endif %}">
+            {{ message.content }}
+        </div>
+    </div>
+    {% empty %}
+    <div class="text-center py-8 text-base-content/60">
+        <p>No messages yet</p>
+    </div>
+    {% endfor %}
+</div>

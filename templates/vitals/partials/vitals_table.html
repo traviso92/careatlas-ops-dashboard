@@ -1,0 +1,34 @@
+{% if vitals %}
+<div class="overflow-x-auto">
+    <table class="table table-sm">
+        <thead>
+            <tr>
+                <th>Date/Time</th>
+                <th>Device Type</th>
+                <th>Readings</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for vital in vitals %}
+            <tr class="hover">
+                <td>{{ vital.timestamp|slice:":16" }}</td>
+                <td>
+                    <span class="badge badge-outline">{{ vital.device_type|title }}</span>
+                </td>
+                <td>
+                    {% for key, value in vital.readings.items %}
+                    <span class="badge badge-ghost badge-sm mr-1">
+                        {{ key|cut:"_"|title }}: {{ value }}
+                    </span>
+                    {% endfor %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="text-center py-8 text-base-content/60">
+    <p>No vitals recorded yet</p>
+</div>
+{% endif %}

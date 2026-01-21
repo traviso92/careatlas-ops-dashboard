@@ -1,0 +1,5 @@
+{% with status=order.status %}
+<span class="badge {% if status == 'delivered' %}badge-success{% elif status == 'shipped' %}badge-info{% elif status == 'processing' %}badge-secondary{% elif status == 'pending' %}badge-warning{% elif status == 'cancelled' %}badge-error{% else %}badge-ghost{% endif %} badge-sm">
+    {{ status|title }}
+</span>
+{% endwith %}

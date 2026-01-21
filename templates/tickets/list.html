@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% load core_tags %}
+
+{% block title %}Tickets - CareAtlas Ops{% endblock %}
+
+{% block breadcrumbs %}
+<li>Tickets</li>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Page Header -->
+    <div class="flex justify-between items-center">
+        <h1 class="text-2xl font-bold">Support Tickets</h1>
+        <a href="{% url 'ticket_create' %}" class="btn btn-primary">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+            </svg>
+            New Ticket
+        </a>
+    </div>
+
+    <!-- Status Filter Tabs -->
+    <div class="tabs tabs-boxed bg-base-100 p-1">
+        <a href="{% url 'ticket_list' %}"
+           class="tab {% if not current_status %}tab-active{% endif %}"
+           hx-get="{% url 'ticket_list' %}"
+           hx-target="#ticket-list"
+           hx-push-url="true">
+            All ({{ total|default:0 }})
+        </a>
+        {% for status_code, status_label in status_choices %}
+        <a href="{% url 'ticket_list' %}?status={{ status_code }}"
+           class="tab {% if current_status == status_code %}tab-active{% endif %}"
+           hx-get="{% url 'ticket_list' %}?status={{ status_code }}"
+           hx-target="#ticket-list"
+           hx-push-url="true">
+            {{ status_label }} ({{ status_counts|get_item:status_code|default:0 }})
+        </a>
+        {% endfor %}
+    </div>
+
+    <!-- Filters -->
+    <div class="card bg-base-100 shadow">
+        <div class="card-body py-4">
+            <div class="flex flex-wrap gap-4">
+                <div class="form-control flex-1 min-w-[200px]">
+                    <input type="text"
+                           name="q"
+                           value="{{ query }}"
+                           placeholder="Search by ticket # or title..."
+                           class="input input-bordered w-full"
+                           hx-get="{% url 'ticket_list' %}"
+                           hx-trigger="keyup changed delay:300ms"
+                           hx-target="#ticket-list"
+                           hx-include="[name='status'], [name='priority'], [name='category']"
+                           hx-push-url="true" />
+                </div>
+                <select name="priority"
+                        class="select select-bordered"
+                        hx-get="{% url 'ticket_list' %}"
+                        hx-trigger="change"
+                        hx-target="#ticket-list"
+                        hx-include="[name='q'], [name='status'], [name='category']"
+                        hx-push-url="true">
+                    <option value="">All Priorities</option>
+                    {% for priority_code, priority_label in priority_choices %}
+                    <option value="{{ priority_code }}" {% if current_priority == priority_code %}selected{% endif %}>{{ priority_label }}</option>
+                    {% endfor %}
+                </select>
+                <select name="category"
+                        class="select select-bordered"
+                        hx-get="{% url 'ticket_list' %}"
+                        hx-trigger="change"
+                        hx-target="#ticket-list"
+                        hx-include="[name='q'], [name='status'], [name='priority']"
+                        hx-push-url="true">
+                    <option value="">All Categories</option>
+                    {% for cat_code, cat_label in category_choices %}
+                    <option value="{{ cat_code }}" {% if current_category == cat_code %}selected{% endif %}>{{ cat_label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ticket List -->
+    <div id="ticket-list">
+        {% include "tickets/partials/ticket_table.html" %}
+    </div>
+</div>
+{% endblock %}

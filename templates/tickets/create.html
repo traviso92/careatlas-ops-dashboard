@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% load core_tags %}
+
+{% block title %}Create Ticket - CareAtlas Ops{% endblock %}
+
+{% block breadcrumbs %}
+<li><a href="{% url 'ticket_list' %}">Tickets</a></li>
+<li>Create</li>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="card bg-base-100 shadow">
+        <div class="card-body">
+            <h1 class="card-title text-2xl mb-6">Create Support Ticket</h1>
+
+            <form action="{% url 'ticket_create' %}" method="post">
+                {% csrf_token %}
+
+                <!-- Title -->
+                <div class="form-control mb-4">
+                    <label class="label">
+                        <span class="label-text font-semibold">Title *</span>
+                    </label>
+                    <input type="text"
+                           name="title"
+                           class="input input-bordered"
+                           placeholder="Brief description of the issue"
+                           required />
+                </div>
+
+                <!-- Description -->
+                <div class="form-control mb-4">
+                    <label class="label">
+                        <span class="label-text font-semibold">Description</span>
+                    </label>
+                    <textarea name="description"
+                              class="textarea textarea-bordered h-32"
+                              placeholder="Detailed description of the issue..."></textarea>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <!-- Priority -->
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-semibold">Priority</span>
+                        </label>
+                        <select name="priority" class="select select-bordered">
+                            {% for priority_code, priority_label in priority_choices %}
+                            <option value="{{ priority_code }}" {% if priority_code == 'medium' %}selected{% endif %}>
+                                {{ priority_label }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Category -->
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-semibold">Category</span>
+                        </label>
+                        <select name="category" class="select select-bordered">
+                            {% for cat_code, cat_label in category_choices %}
+                            <option value="{{ cat_code }}" {% if cat_code == prefill_category %}selected{% endif %}>
+                                {{ cat_label }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Related Entities -->
+                <div class="divider">Related Records (Optional)</div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <!-- Patient -->
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-semibold">Patient ID</span>
+                        </label>
+                        {% if prefill_patient %}
+                        <input type="text"
+                               name="patient_id"
+                               class="input input-bordered"
+                               value="{{ prefill_patient_id }}"
+                               readonly />
+                        <label class="label">
+                            <span class="label-text-alt">{{ prefill_patient.first_name }} {{ prefill_patient.last_name }}</span>
+                        </label>
+                        {% else %}
+                        <input type="text"
+                               name="patient_id"
+                               class="input input-bordered"
+                               placeholder="Patient ID (optional)" />
+                        {% endif %}
+                    </div>
+
+                    <!-- Device -->
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-semibold">Device ID</span>
+                        </label>
+                        {% if prefill_device %}
+                        <input type="text"
+                               name="device_id"
+                               class="input input-bordered"
+                               value="{{ prefill_device_id }}"
+                               readonly />
+                        <label class="label">
+                            <span class="label-text-alt">{{ prefill_device.serial_number }}</span>
+                        </label>
+                        {% else %}
+                        <input type="text"
+                               name="device_id"
+                               class="input input-bordered"
+                               placeholder="Device ID (optional)" />
+                        {% endif %}
+                    </div>
+
+                    <!-- Order -->
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-semibold">Order ID</span>
+                        </label>
+                        <input type="text"
+                               name="order_id"
+                               class="input input-bordered"
+                               value="{{ prefill_order_id|default:'' }}"
+                               placeholder="Order ID (optional)" />
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="flex justify-end gap-2">
+                    <a href="{% url 'ticket_list' %}" class="btn btn-ghost">Cancel</a>
+                    <button type="submit" class="btn btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                        </svg>
+                        Create Ticket
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,44 @@
+{% if recent_orders %}
+<div class="overflow-x-auto">
+    <table class="table table-sm">
+        <thead>
+            <tr>
+                <th>Order</th>
+                <th>Patient</th>
+                <th>Status</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for order in recent_orders %}
+            <tr>
+                <td>
+                    <div class="font-medium">{{ order.order_number }}</div>
+                    <div class="text-xs text-base-content/60">{{ order.created_at|slice:":10" }}</div>
+                </td>
+                <td>
+                    {% if order.patient %}
+                    <a href="{% url 'patient_detail' order.patient.id %}" class="link link-hover">
+                        {{ order.patient.first_name }} {{ order.patient.last_name }}
+                    </a>
+                    {% else %}
+                    <span class="text-base-content/60">Unknown</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% include "orders/partials/status_badge.html" %}
+                </td>
+                <td>
+                    <a href="{% url 'order_detail' order.id %}" class="btn btn-ghost btn-xs">View</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="text-center py-8 text-base-content/60">
+    <p>No recent orders</p>
+    <a href="{% url 'order_create' %}" class="btn btn-primary btn-sm mt-2">Create Order</a>
+</div>
+{% endif %}

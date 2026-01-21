@@ -1,0 +1,59 @@
+{% if orders %}
+<div class="card bg-base-100 shadow">
+    <div class="card-body">
+        <div class="overflow-x-auto">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Order</th>
+                        <th>Patient</th>
+                        <th>Items</th>
+                        <th>Created</th>
+                        <th>Status</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                    <tr class="hover">
+                        <td>
+                            <div class="font-mono">{{ order.order_number }}</div>
+                            {% if order.vendor_order_id %}
+                            <div class="text-xs text-base-content/60">{{ order.vendor_order_id }}</div>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if order.patient %}
+                            <a href="{% url 'patient_detail' order.patient.id %}" class="link link-primary">
+                                {{ order.patient.first_name }} {{ order.patient.last_name }}
+                            </a>
+                            <div class="text-sm text-base-content/60">{{ order.patient.mrn }}</div>
+                            {% else %}
+                            <span class="text-base-content/60">-</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ order.items|length }} item{% if order.items|length != 1 %}s{% endif %}</td>
+                        <td>{{ order.created_at|slice:":10" }}</td>
+                        <td>
+                            {% include "orders/partials/status_badge.html" %}
+                        </td>
+                        <td>
+                            <a href="{% url 'order_detail' order.id %}" class="btn btn-ghost btn-sm">View</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="card bg-base-100 shadow">
+    <div class="card-body text-center py-12">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-16 h-16 mx-auto mb-4 text-success">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+        </svg>
+        <p class="text-base-content/60">No pending orders</p>
+    </div>
+</div>
+{% endif %}

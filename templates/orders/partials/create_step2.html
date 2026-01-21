@@ -1,0 +1,54 @@
+<div data-step="2">
+    <h3 class="font-semibold mb-4">Step 2: Choose Devices</h3>
+
+    <div class="alert alert-info mb-4">
+        <span>Ordering for: <strong>{{ patient.first_name }} {{ patient.last_name }}</strong> ({{ patient.mrn }})</span>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {% for device in device_types %}
+        <label class="card bg-base-200 cursor-pointer hover:bg-base-300 transition-colors">
+            <div class="card-body p-4">
+                <div class="flex items-start gap-3">
+                    <input type="checkbox"
+                           name="devices"
+                           value="{{ device.type }}"
+                           class="checkbox checkbox-primary mt-1" />
+                    <div class="flex-1">
+                        <h4 class="font-medium">{{ device.name }}</h4>
+                        <p class="text-sm text-base-content/60">{{ device.description }}</p>
+                        <p class="text-xs text-base-content/40 mt-1">{{ device.manufacturer }} {{ device.model }}</p>
+                    </div>
+                </div>
+            </div>
+        </label>
+        {% endfor %}
+    </div>
+
+    <div class="flex justify-between mt-6">
+        <button type="button"
+                class="btn btn-ghost"
+                hx-get="{% url 'order_create' %}?step=1"
+                hx-target="#order-form-content">
+            Back
+        </button>
+        <button type="button"
+                id="step2-next"
+                class="btn btn-primary"
+                hx-get="{% url 'order_create' %}?step=3&patient_id={{ patient.id }}"
+                hx-target="#order-form-content"
+                hx-include="[name='devices']:checked">
+            Next: Confirm Address
+        </button>
+    </div>
+</div>
+
+<script>
+    // Enable/disable next button based on selection
+    document.querySelectorAll('[name="devices"]').forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const anyChecked = document.querySelectorAll('[name="devices"]:checked').length > 0;
+            document.getElementById('step2-next').disabled = !anyChecked;
+        });
+    });
+</script>

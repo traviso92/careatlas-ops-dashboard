@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% load core_tags %}
+
+{% block title %}{{ ticket.ticket_number }} - CareAtlas Ops{% endblock %}
+
+{% block breadcrumbs %}
+<li><a href="{% url 'ticket_list' %}">Tickets</a></li>
+<li>{{ ticket.ticket_number }}</li>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Ticket Header -->
+    <div class="card bg-base-100 shadow">
+        <div class="card-body">
+            <div class="flex justify-between items-start">
+                <div>
+                    <div class="flex items-center gap-3 mb-2">
+                        <span class="font-mono text-base-content/60">{{ ticket.ticket_number }}</span>
+                        {% include "tickets/partials/status_badge.html" %}
+                        {% if ticket.priority == 'urgent' %}
+                        <span class="badge badge-error">Urgent</span>
+                        {% elif ticket.priority == 'high' %}
+                        <span class="badge badge-warning">High</span>
+                        {% elif ticket.priority == 'medium' %}
+                        <span class="badge badge-info">Medium</span>
+                        {% else %}
+                        <span class="badge badge-ghost">Low</span>
+                        {% endif %}
+                    </div>
+                    <h1 class="text-2xl font-bold">{{ ticket.title }}</h1>
+                    <p class="text-base-content/60 mt-1">
+                        Created {{ ticket.created_at|friendly_date }}
+                        {% if ticket.sla_due_at %}
+                        &bull; SLA Due: {{ ticket.sla_due_at|friendly_date }}
+                        {% endif %}
+                    </p>
+                </div>
+                <div class="dropdown dropdown-end">
+                    <div tabindex="0" role="button" class="btn btn-outline">
+                        Update Status
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                        </svg>
+                    </div>
+                    <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
+                        {% for status_code, status_label in status_choices %}
+                        {% if status_code != ticket.status %}
+                        <li>
+                            <form action="{% url 'ticket_update_status' ticket.id %}" method="post">
+                                {% csrf_token %}
+                                <input type="hidden" name="status" value="{{ status_code }}">
+                                <button type="submit" class="w-full text-left">{{ status_label }}</button>
+                            </form>
+                        </li>
+                        {% endif %}
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- Related Entities -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <h3 class="font-semibold mb-2">Category</h3>
+                    {% if ticket.category == 'device' %}
+                    <span class="badge badge-lg badge-outline">Device Issue</span>
+                    {% elif ticket.category == 'order' %}
+                    <span class="badge badge-lg badge-outline">Order Issue</span>
+                    {% elif ticket.category == 'patient' %}
+                    <span class="badge badge-lg badge-outline">Patient Support</span>
+                    {% else %}
+                    <span class="badge badge-lg badge-outline">Other</span>
+                    {% endif %}
+                </div>
+                {% if patient %}
+                <div>
+                    <h3 class="font-semibold mb-2">Patient</h3>
+                    <a href="{% url 'patient_detail' patient.id %}" class="link link-primary">
+                        {{ patient.first_name }} {{ patient.last_name }}
+                        <span class="text-base-content/60">({{ patient.mrn }})</span>
+                    </a>
+                </div>
+                {% endif %}
+                {% if device %}
+                <div>
+                    <h3 class="font-semibold mb-2">Device</h3>
+                    <a href="{% url 'device_detail' device.id %}" class="link link-primary">
+                        {{ device.serial_number }}
+                        <span class="text-base-content/60">({{ device.device_type|title }})</span>
+                    </a>
+                </div>
+                {% endif %}
+                {% if order %}
+                <div>
+                    <h3 class="font-semibold mb-2">Order</h3>
+                    <a href="{% url 'order_detail' order.id %}" class="link link-primary">
+                        {{ order.order_number }}
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Messages -->
+    <div class="card bg-base-100 shadow">
+        <div class="card-body">
+            <h2 class="card-title mb-4">Messages</h2>
+
+            <div id="message-list">
+                {% include "tickets/partials/message_list.html" %}
+            </div>
+
+            <!-- Add Message Form -->
+            <div class="divider"></div>
+            <form action="{% url 'ticket_add_message' ticket.id %}"
+                  method="post"
+                  hx-post="{% url 'ticket_add_message' ticket.id %}"
+                  hx-target="#message-list"
+                  hx-swap="innerHTML">
+                {% csrf_token %}
+                <div class="form-control">
+                    <textarea name="message"
+                              class="textarea textarea-bordered h-24"
+                              placeholder="Type your message..."
+                              required></textarea>
+                </div>
+                <div class="flex justify-between items-center mt-4">
+                    <label class="label cursor-pointer gap-2">
+                        <input type="checkbox" name="is_internal" class="checkbox checkbox-sm">
+                        <span class="label-text">Internal note (not visible to patient)</span>
+                    </label>
+                    <button type="submit" class="btn btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" />
+                        </svg>
+                        Send Message
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

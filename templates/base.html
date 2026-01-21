@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="corporate">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}CareAtlas Ops Dashboard{% endblock %}</title>
+
+    <!-- Tailwind CSS + DaisyUI -->
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.7.2/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- HTMX -->
+    <script src="https://unpkg.com/htmx.org@2.0.0"></script>
+
+    <!-- Alpine.js -->
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1"></script>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% load static %}{% static 'css/custom.css' %}">
+
+    <style>
+        [x-cloak] { display: none !important; }
+
+        /* HTMX loading indicators */
+        .htmx-indicator { display: none; }
+        .htmx-request .htmx-indicator { display: inline-flex; }
+        .htmx-request.htmx-indicator { display: inline-flex; }
+
+        /* Button loading states */
+        .btn .htmx-indicator { display: none; }
+        .btn.htmx-request .htmx-indicator { display: inline-flex; }
+        .btn.htmx-request .btn-text { display: none; }
+
+        /* Loading overlay for content areas */
+        .htmx-request .loading-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(255, 255, 255, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+
+        /* Skeleton loading animation */
+        @keyframes shimmer {
+            0% { background-position: -200px 0; }
+            100% { background-position: calc(200px + 100%) 0; }
+        }
+
+        .skeleton-loading {
+            animation: shimmer 1.5s infinite linear;
+            background: linear-gradient(90deg, #f0f0f0 8%, #e0e0e0 18%, #f0f0f0 33%);
+            background-size: 200px 100%;
+        }
+    </style>
+
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="min-h-screen bg-base-200">
+    <!-- Toast Container -->
+    <div id="toast-container" class="toast toast-top toast-end z-50" x-data="toastComponent()">
+        <template x-for="toast in toasts" :key="toast.id">
+            <div class="alert" :class="{
+                'alert-success': toast.type === 'success',
+                'alert-error': toast.type === 'error',
+                'alert-warning': toast.type === 'warning',
+                'alert-info': toast.type === 'info'
+            }" x-show="toast.show"
+                 x-transition:enter="transition ease-out duration-300"
+                 x-transition:enter-start="opacity-0 translate-x-4"
+                 x-transition:enter-end="opacity-100 translate-x-0"
+                 x-transition:leave="transition ease-in duration-200"
+                 x-transition:leave-start="opacity-100 translate-x-0"
+                 x-transition:leave-end="opacity-0 translate-x-4">
+                <span x-text="toast.message"></span>
+            </div>
+        </template>
+    </div>
+
+    <!-- Main Layout -->
+    <div class="drawer lg:drawer-open">
+        <input id="drawer-toggle" type="checkbox" class="drawer-toggle" />
+
+        <!-- Main Content -->
+        <div class="drawer-content flex flex-col overflow-x-hidden">
+            <!-- Navbar -->
+            {% include "components/navbar.html" %}
+
+            <!-- Page Content -->
+            <main class="flex-1 p-6 overflow-x-hidden">
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+
+        <!-- Sidebar -->
+        {% include "components/sidebar.html" %}
+    </div>
+
+    <!-- Modal Container -->
+    <div id="modal-container"></div>
+
+    <!-- Global Loading Indicator -->
+    <div class="fixed bottom-4 right-4 htmx-indicator">
+        <span class="loading loading-spinner loading-md text-primary"></span>
+    </div>
+
+    <script>
+        // Global toast manager instance
+        window.toastManager = {
+            toasts: [],
+            listeners: [],
+            addToast(message, type = 'info') {
+                const id = Date.now();
+                const toast = { id, message, type, show: true };
+                this.toasts.push(toast);
+                this.notify();
+                setTimeout(() => {
+                    toast.show = false;
+                    this.notify();
+                    setTimeout(() => {
+                        this.toasts = this.toasts.filter(t => t.id !== id);
+                        this.notify();
+                    }, 300);
+                }, 4000);
+            },
+            subscribe(callback) {
+                this.listeners.push(callback);
+                return () => {
+                    this.listeners = this.listeners.filter(l => l !== callback);
+                };
+            },
+            notify() {
+                this.listeners.forEach(l => l(this.toasts));
+            }
+        };
+
+        // Alpine toast component
+        function toastComponent() {
+            return {
+                toasts: [],
+                init() {
+                    this.toasts = window.toastManager.toasts;
+                    window.toastManager.subscribe((toasts) => {
+                        this.toasts = [...toasts];
+                    });
+                },
+                addToast(message, type = 'info') {
+                    window.toastManager.addToast(message, type);
+                }
+            }
+        }
+
+        // Listen for HTMX toast events
+        document.body.addEventListener('showToast', function(evt) {
+            window.toastManager.addToast(evt.detail.message, evt.detail.type);
+        });
+
+        // HTMX config
+        document.body.addEventListener('htmx:configRequest', function(evt) {
+            evt.detail.headers['X-CSRFToken'] = '{{ csrf_token }}';
+        });
+
+        // Handle modal close
+        document.body.addEventListener('closeModal', function() {
+            document.getElementById('modal-container').innerHTML = '';
+        });
+
+        // Handle HTMX errors with toasts
+        document.body.addEventListener('htmx:responseError', function(evt) {
+            window.toastManager.addToast('An error occurred. Please try again.', 'error');
+        });
+    </script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

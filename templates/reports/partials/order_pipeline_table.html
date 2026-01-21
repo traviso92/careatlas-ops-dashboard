@@ -1,0 +1,136 @@
+{% load core_tags %}
+<!-- Summary Stats -->
+<div class="stats shadow w-full mb-6">
+    <div class="stat">
+        <div class="stat-title">Total Orders</div>
+        <div class="stat-value">{{ total_orders }}</div>
+        <div class="stat-desc">in last {{ days }} days</div>
+    </div>
+    <div class="stat">
+        <div class="stat-title">Completion Rate</div>
+        <div class="stat-value {% if completion_rate >= 80 %}text-success{% elif completion_rate >= 50 %}text-warning{% else %}text-error{% endif %}">
+            {{ completion_rate }}%
+        </div>
+        <div class="stat-desc">{{ completed }} orders delivered</div>
+    </div>
+    <div class="stat">
+        <div class="stat-title">Pending</div>
+        <div class="stat-value text-warning">{{ pending }}</div>
+        <div class="stat-desc">awaiting processing</div>
+    </div>
+    <div class="stat">
+        <div class="stat-title">In Transit</div>
+        <div class="stat-value text-info">{{ shipped }}</div>
+        <div class="stat-desc">shipped orders</div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    <!-- Orders by Day Chart -->
+    <div class="card bg-base-100 shadow">
+        <div class="card-body">
+            <h3 class="card-title text-base">Orders by Day</h3>
+            <canvas id="orders-by-day-chart" height="200"></canvas>
+        </div>
+    </div>
+
+    <!-- Status Distribution Chart -->
+    <div class="card bg-base-100 shadow">
+        <div class="card-body">
+            <h3 class="card-title text-base">Status Distribution</h3>
+            <canvas id="status-distribution-chart" height="200"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Pipeline Breakdown -->
+<div class="card bg-base-100 shadow">
+    <div class="card-body">
+        <h2 class="card-title mb-4">Pipeline Breakdown</h2>
+
+        <!-- Visual Pipeline -->
+        <div class="flex flex-wrap gap-4 mb-6">
+            {% for status, count in status_counts.items %}
+            <div class="flex-1 min-w-[150px]">
+                <div class="p-4 rounded-lg bg-base-200 text-center">
+                    <p class="text-2xl font-bold">{{ count }}</p>
+                    <p class="text-sm text-base-content/60 capitalize">{{ status }}</p>
+                </div>
+            </div>
+            {% empty %}
+            <p class="text-base-content/60">No orders in this period</p>
+            {% endfor %}
+        </div>
+
+        <!-- Status Legend with Progress -->
+        <div class="space-y-3">
+            {% if status_counts.pending %}
+            <div>
+                <div class="flex justify-between text-sm mb-1">
+                    <span>Pending</span>
+                    <span>{{ status_counts.pending }} orders</span>
+                </div>
+                <progress class="progress progress-warning w-full"
+                          value="{{ status_counts.pending }}"
+                          max="{{ total_orders }}"></progress>
+            </div>
+            {% endif %}
+
+            {% if status_counts.processing %}
+            <div>
+                <div class="flex justify-between text-sm mb-1">
+                    <span>Processing</span>
+                    <span>{{ status_counts.processing }} orders</span>
+                </div>
+                <progress class="progress progress-accent w-full"
+                          value="{{ status_counts.processing }}"
+                          max="{{ total_orders }}"></progress>
+            </div>
+            {% endif %}
+
+            {% if status_counts.shipped %}
+            <div>
+                <div class="flex justify-between text-sm mb-1">
+                    <span>Shipped</span>
+                    <span>{{ status_counts.shipped }} orders</span>
+                </div>
+                <progress class="progress progress-info w-full"
+                          value="{{ status_counts.shipped }}"
+                          max="{{ total_orders }}"></progress>
+            </div>
+            {% endif %}
+
+            {% if status_counts.delivered or status_counts.completed %}
+            <div>
+                <div class="flex justify-between text-sm mb-1">
+                    <span>Delivered/Completed</span>
+                    <span>{{ completed }} orders</span>
+                </div>
+                <progress class="progress progress-success w-full"
+                          value="{{ completed }}"
+                          max="{{ total_orders }}"></progress>
+            </div>
+            {% endif %}
+
+            {% if status_counts.cancelled %}
+            <div>
+                <div class="flex justify-between text-sm mb-1">
+                    <span>Cancelled</span>
+                    <span>{{ status_counts.cancelled }} orders</span>
+                </div>
+                <progress class="progress progress-error w-full"
+                          value="{{ status_counts.cancelled }}"
+                          max="{{ total_orders }}"></progress>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Link to Orders -->
+        <div class="card-actions justify-end mt-6">
+            <a href="{% url 'order_list' %}" class="btn btn-primary">
+                View All Orders
+            </a>
+        </div>
+    </div>
+</div>

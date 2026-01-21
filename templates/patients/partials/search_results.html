@@ -1,0 +1,24 @@
+{% if patients %}
+<div class="bg-base-100 shadow-lg rounded-box p-2 max-h-96 overflow-y-auto">
+    {% for patient in patients %}
+    <div class="cursor-pointer hover:bg-base-200 p-2 rounded flex items-center gap-3"
+         data-patient-id="{{ patient.id }}"
+         data-patient-name="{{ patient.first_name }} {{ patient.last_name }}"
+         data-patient-mrn="{{ patient.mrn }}">
+        <div class="avatar placeholder">
+            <div class="bg-neutral text-neutral-content rounded-full w-8">
+                <span class="text-xs">{{ patient.first_name.0 }}{{ patient.last_name.0 }}</span>
+            </div>
+        </div>
+        <div>
+            <div class="font-medium">{{ patient.first_name }} {{ patient.last_name }}</div>
+            <div class="text-xs text-base-content/60">MRN: {{ patient.mrn }}</div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% elif query %}
+<div class="bg-base-100 shadow-lg rounded-box p-4 text-center text-base-content/60">
+    No patients found matching "{{ query }}"
+</div>
+{% endif %}

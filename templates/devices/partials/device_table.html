@@ -1,0 +1,71 @@
+{% load core_tags %}
+<div class="card bg-base-100 shadow">
+    <div class="card-body">
+        <div class="flex justify-between items-center mb-4">
+            <p class="text-sm text-base-content/60">{{ total }} device{% if total != 1 %}s{% endif %} found</p>
+        </div>
+
+        {% if devices %}
+        <div class="overflow-x-auto">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Serial Number</th>
+                        <th>Type</th>
+                        <th>Patient</th>
+                        <th>Last Reading</th>
+                        <th>Status</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for device in devices %}
+                    <tr class="hover">
+                        <td class="font-mono">{{ device.serial_number }}</td>
+                        <td>{{ device.device_type|device_type_display }}</td>
+                        <td>
+                            {% if device.patient_id %}
+                            <span class="text-sm">Assigned</span>
+                            {% else %}
+                            <span class="text-sm text-base-content/60">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if device.last_reading_at %}
+                            {{ device.last_reading_at|friendly_date }}
+                            {% else %}
+                            <span class="text-base-content/60">Never</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% include "devices/partials/status_badge.html" %}
+                        </td>
+                        <td>
+                            <a href="{% url 'device_detail' device.id %}"
+                               class="btn btn-ghost btn-sm"
+                               hx-get="{% url 'device_detail' device.id %}"
+                               hx-target="body"
+                               hx-push-url="true"
+                               hx-indicator="this">
+                                <span class="htmx-indicator loading loading-spinner loading-xs"></span>
+                                <span class="btn-text">View</span>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% include "components/pagination.html" with target_id="device-list" %}
+
+        {% else %}
+        <div class="text-center py-12 text-base-content/60">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-16 h-16 mx-auto mb-4">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 0 1-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 0 1 4.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0 1 12 15a9.065 9.065 0 0 1-6.23.693L5 15.5m14.8-.2-.005.004m-6.17 3.75v.22a.75.75 0 0 1-.638.74l-.586.092a.75.75 0 0 0-.647.725v.32a.75.75 0 0 0 .75.75h3a.75.75 0 0 0 .75-.75v-.32a.75.75 0 0 0-.647-.725l-.586-.092a.75.75 0 0 1-.638-.74v-.22" />
+            </svg>
+            <p>No devices found</p>
+        </div>
+        {% endif %}
+    </div>
+</div>

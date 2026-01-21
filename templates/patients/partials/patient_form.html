@@ -1,0 +1,127 @@
+<form method="post"
+      hx-post
+      hx-swap="outerHTML"
+      class="space-y-4">
+    {% csrf_token %}
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="form-control">
+            <label class="label">
+                <span class="label-text">MRN *</span>
+            </label>
+            {{ form.mrn }}
+            {% if form.mrn.errors %}
+            <label class="label">
+                <span class="label-text-alt text-error">{{ form.mrn.errors.0 }}</span>
+            </label>
+            {% endif %}
+        </div>
+
+        <div class="form-control">
+            <label class="label">
+                <span class="label-text">Program *</span>
+            </label>
+            {{ form.program }}
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="form-control">
+            <label class="label">
+                <span class="label-text">First Name *</span>
+            </label>
+            {{ form.first_name }}
+            {% if form.first_name.errors %}
+            <label class="label">
+                <span class="label-text-alt text-error">{{ form.first_name.errors.0 }}</span>
+            </label>
+            {% endif %}
+        </div>
+
+        <div class="form-control">
+            <label class="label">
+                <span class="label-text">Last Name *</span>
+            </label>
+            {{ form.last_name }}
+            {% if form.last_name.errors %}
+            <label class="label">
+                <span class="label-text-alt text-error">{{ form.last_name.errors.0 }}</span>
+            </label>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="form-control">
+            <label class="label">
+                <span class="label-text">Date of Birth</span>
+            </label>
+            {{ form.dob }}
+        </div>
+
+        <div class="form-control">
+            <label class="label">
+                <span class="label-text">Phone</span>
+            </label>
+            {{ form.phone }}
+        </div>
+    </div>
+
+    <div class="form-control">
+        <label class="label">
+            <span class="label-text">Email</span>
+        </label>
+        {{ form.email }}
+    </div>
+
+    <div class="divider">Address</div>
+
+    <div class="form-control">
+        <label class="label">
+            <span class="label-text">Street Address</span>
+        </label>
+        {{ form.street }}
+    </div>
+
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="form-control col-span-2">
+            <label class="label">
+                <span class="label-text">City</span>
+            </label>
+            {{ form.city }}
+        </div>
+
+        <div class="form-control">
+            <label class="label">
+                <span class="label-text">State</span>
+            </label>
+            {{ form.state }}
+        </div>
+
+        <div class="form-control">
+            <label class="label">
+                <span class="label-text">ZIP Code</span>
+            </label>
+            {{ form.zip_code }}
+        </div>
+    </div>
+
+    <div class="divider">Clinical</div>
+
+    <div class="form-control">
+        <label class="label">
+            <span class="label-text">Conditions</span>
+        </label>
+        {{ form.conditions }}
+        <label class="label">
+            <span class="label-text-alt">Enter conditions separated by commas</span>
+        </label>
+    </div>
+
+    <div class="flex justify-end gap-2 mt-6">
+        <a href="{% url 'patient_list' %}" class="btn btn-ghost">Cancel</a>
+        <button type="submit" class="btn btn-primary">
+            {% if patient %}Update{% else %}Create{% endif %} Patient
+        </button>
+    </div>
+</form>

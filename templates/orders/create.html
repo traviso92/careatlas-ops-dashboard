@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}Create Order - CareAtlas Ops{% endblock %}
+
+{% block breadcrumbs %}
+<li><a href="{% url 'order_list' %}">Orders</a></li>
+<li>Create</li>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+    <div class="card bg-base-100 shadow">
+        <div class="card-body">
+            <h2 class="card-title mb-4">Create Device Order</h2>
+
+            <!-- Steps Indicator -->
+            <ul class="steps w-full mb-8">
+                <li class="step step-primary" data-step="1">Select Patient</li>
+                <li class="step" data-step="2">Choose Devices</li>
+                <li class="step" data-step="3">Confirm & Submit</li>
+            </ul>
+
+            <!-- Form Content -->
+            <div id="order-form-content"
+                 hx-get="{% url 'order_create' %}?step=1"
+                 hx-trigger="load"
+                 hx-swap="innerHTML">
+                <div class="flex justify-center py-12">
+                    <span class="loading loading-spinner loading-lg"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Update steps indicator based on current step
+    document.body.addEventListener('htmx:afterSwap', function(evt) {
+        if (evt.detail.target.id === 'order-form-content') {
+            const content = evt.detail.target.innerHTML;
+            let currentStep = 1;
+            if (content.includes('data-step="2"')) currentStep = 2;
+            if (content.includes('data-step="3"')) currentStep = 3;
+
+            document.querySelectorAll('.steps .step').forEach((step, idx) => {
+                if (idx + 1 <= currentStep) {
+                    step.classList.add('step-primary');
+                } else {
+                    step.classList.remove('step-primary');
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

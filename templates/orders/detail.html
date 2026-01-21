@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+
+{% block title %}Order {{ order.order_number }} - CareAtlas Ops{% endblock %}
+
+{% block breadcrumbs %}
+<li><a href="{% url 'order_list' %}">Orders</a></li>
+<li>{{ order.order_number }}</li>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Order Header -->
+    <div class="card bg-base-100 shadow">
+        <div class="card-body">
+            <div class="flex justify-between items-start">
+                <div>
+                    <h1 class="text-2xl font-bold">{{ order.order_number }}</h1>
+                    <p class="text-base-content/60">Created: {{ order.created_at|slice:":16" }}</p>
+                    <div class="mt-2" id="order-status">
+                        {% include "orders/partials/status_badge.html" %}
+                    </div>
+                </div>
+                <div class="flex gap-2">
+                    {% if order.status == 'pending' or order.status == 'processing' %}
+                    <form hx-post="{% url 'order_cancel' order.id %}"
+                          hx-target="#order-status"
+                          hx-confirm="Are you sure you want to cancel this order?">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-outline btn-error btn-sm">Cancel Order</button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Patient Info -->
+                <div>
+                    <h3 class="font-semibold mb-2">Patient</h3>
+                    {% if patient %}
+                    <p>
+                        <a href="{% url 'patient_detail' patient.id %}" class="link link-primary">
+                            {{ patient.first_name }} {{ patient.last_name }}
+                        </a>
+                    </p>
+                    <p class="text-sm text-base-content/60">MRN: {{ patient.mrn }}</p>
+                    {% else %}
+                    <p class="text-base-content/60">Unknown patient</p>
+                    {% endif %}
+                </div>
+
+                <!-- Shipping Info -->
+                <div>
+                    <h3 class="font-semibold mb-2">Shipping Address</h3>
+                    {% if order.shipping_address %}
+                    <p class="text-sm">{{ order.shipping_address.name|default:"" }}</p>
+                    <p class="text-sm">{{ order.shipping_address.street }}</p>
+                    <p class="text-sm">{{ order.shipping_address.city }}, {{ order.shipping_address.state }} {{ order.shipping_address.zip_code }}</p>
+                    {% else %}
+                    <p class="text-sm text-base-content/60">No shipping address</p>
+                    {% endif %}
+                </div>
+
+                <!-- Tracking Info -->
+                <div>
+                    <h3 class="font-semibold mb-2">Tracking</h3>
+                    {% if order.tracking_number %}
+                    <p class="text-sm font-mono">{{ order.tracking_number }}</p>
+                    {% if order.tracking_url %}
+                    <a href="{{ order.tracking_url }}" target="_blank" class="link link-primary text-sm">Track Package</a>
+                    {% endif %}
+                    {% else %}
+                    <p class="text-sm text-base-content/60">No tracking info yet</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Items -->
+    <div class="card bg-base-100 shadow">
+        <div class="card-body">
+            <h2 class="card-title">Order Items</h2>
+            {% if order.items %}
+            <div class="overflow-x-auto">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Device Type</th>
+                            <th>Quantity</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in order.items %}
+                        <tr>
+                            <td>{{ item.device_type|title }}</td>
+                            <td>{{ item.quantity }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-base-content/60">No items</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Order Timeline -->
+    <div class="card bg-base-100 shadow">
+        <div class="card-body">
+            <h2 class="card-title">Order Timeline</h2>
+            {% if order.status_history %}
+            <ul class="timeline timeline-vertical">
+                {% for entry in order.status_history reversed %}
+                <li>
+                    {% if not forloop.first %}<hr>{% endif %}
+                    <div class="timeline-start">{{ entry.changed_at|slice:":16" }}</div>
+                    <div class="timeline-middle">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5 {% if entry.status == 'delivered' %}text-success{% elif entry.status == 'cancelled' %}text-error{% else %}text-primary{% endif %}">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                    <div class="timeline-end timeline-box">
+                        <span class="font-medium">{{ entry.status|title }}</span>
+                        {% if entry.notes %}
+                        <p class="text-sm text-base-content/60">{{ entry.notes }}</p>
+                        {% endif %}
+                    </div>
+                    {% if not forloop.last %}<hr>{% endif %}
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p class="text-base-content/60">No status history available</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Notes -->
+    {% if order.notes %}
+    <div class="card bg-base-100 shadow">
+        <div class="card-body">
+            <h2 class="card-title">Notes</h2>
+            <p>{{ order.notes }}</p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

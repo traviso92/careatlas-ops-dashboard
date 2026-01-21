@@ -1,0 +1,115 @@
+{% load core_tags %}
+<!-- Summary Stats -->
+<div class="stats shadow w-full mb-6">
+    <div class="stat">
+        <div class="stat-title">Compliance Rate</div>
+        <div class="stat-value {% if compliance_rate >= 80 %}text-success{% elif compliance_rate >= 60 %}text-warning{% else %}text-error{% endif %}">{{ compliance_rate }}%</div>
+        <div class="stat-desc">{{ compliant_devices|length }} compliant devices</div>
+    </div>
+    <div class="stat">
+        <div class="stat-title">Total Devices</div>
+        <div class="stat-value">{{ total_devices }}</div>
+        <div class="stat-desc">Active devices monitored</div>
+    </div>
+    <div class="stat">
+        <div class="stat-title">Non-Compliant</div>
+        <div class="stat-value text-error">{{ non_compliant_devices|length }}</div>
+        <div class="stat-desc">Need attention</div>
+    </div>
+</div>
+
+<!-- Non-Compliant Devices (Priority) -->
+{% if non_compliant_devices %}
+<div class="card bg-base-100 shadow mb-6">
+    <div class="card-body">
+        <h2 class="card-title text-error">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+            </svg>
+            Non-Compliant Devices ({{ non_compliant_devices|length }})
+        </h2>
+        <div class="overflow-x-auto">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Serial Number</th>
+                        <th>Type</th>
+                        <th>Status</th>
+                        <th>Days Since Reading</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for device in non_compliant_devices %}
+                    <tr class="hover">
+                        <td class="font-mono">{{ device.serial_number }}</td>
+                        <td>{{ device.device_type|device_type_display }}</td>
+                        <td>
+                            <span class="badge {% if device.status == 'active' %}badge-success{% elif device.status == 'offline' %}badge-warning{% else %}badge-ghost{% endif %}">
+                                {{ device.status|title }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if device.days_since_reading is not None %}
+                            <span class="{% if device.days_since_reading >= 30 %}text-error font-bold{% elif device.days_since_reading >= 14 %}text-warning{% endif %}">
+                                {{ device.days_since_reading }} days
+                            </span>
+                            {% else %}
+                            <span class="text-error font-bold">Never</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'device_detail' device.id %}" class="btn btn-ghost btn-sm">View</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Compliant Devices -->
+<div class="card bg-base-100 shadow">
+    <div class="card-body">
+        <h2 class="card-title text-success">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+            </svg>
+            Compliant Devices ({{ compliant_devices|length }})
+        </h2>
+        {% if compliant_devices %}
+        <div class="overflow-x-auto">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Serial Number</th>
+                        <th>Type</th>
+                        <th>Status</th>
+                        <th>Days Since Reading</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for device in compliant_devices %}
+                    <tr class="hover">
+                        <td class="font-mono">{{ device.serial_number }}</td>
+                        <td>{{ device.device_type|device_type_display }}</td>
+                        <td>
+                            <span class="badge badge-success">{{ device.status|title }}</span>
+                        </td>
+                        <td>{{ device.days_since_reading }} days ago</td>
+                        <td>
+                            <a href="{% url 'device_detail' device.id %}" class="btn btn-ghost btn-sm">View</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-base-content/60 text-center py-8">No compliant devices found</p>
+        {% endif %}
+    </div>
+</div>

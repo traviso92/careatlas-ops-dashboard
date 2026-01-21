@@ -1,0 +1,107 @@
+{% load core_tags %}
+<!-- Summary Stats -->
+<div class="stats shadow w-full mb-6">
+    <div class="stat">
+        <div class="stat-title">Currently Offline</div>
+        <div class="stat-value text-error">{{ total_offline }}</div>
+        <div class="stat-desc">devices need attention</div>
+    </div>
+    <div class="stat">
+        <div class="stat-figure text-error">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+            </svg>
+        </div>
+        <div class="stat-title">Critical (7+ days)</div>
+        <div class="stat-value text-error">
+            {% with critical_count=0 %}
+            {% for d in offline_devices %}{% if d.days_offline >= 7 %}{% with critical_count=critical_count|add:1 %}{% endwith %}{% endif %}{% endfor %}
+            {{ offline_devices|length }}
+            {% endwith %}
+        </div>
+        <div class="stat-desc">immediate action required</div>
+    </div>
+</div>
+
+<!-- Trend Chart -->
+<div class="card bg-base-100 shadow mb-6">
+    <div class="card-body">
+        <h3 class="card-title text-base">Offline Device Trend</h3>
+        <canvas id="connectivity-trend-chart" height="150"></canvas>
+    </div>
+</div>
+
+<!-- Offline Devices Table -->
+<div class="card bg-base-100 shadow">
+    <div class="card-body">
+        <h2 class="card-title">
+            Offline Devices ({{ total_offline }})
+        </h2>
+
+        {% if offline_devices %}
+        <div class="overflow-x-auto">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Severity</th>
+                        <th>Serial Number</th>
+                        <th>Type</th>
+                        <th>Days Offline</th>
+                        <th>Last Seen</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for device in offline_devices %}
+                    <tr class="hover">
+                        <td>
+                            {% if device.days_offline >= 7 %}
+                            <span class="badge badge-error">Critical</span>
+                            {% elif device.days_offline >= 3 %}
+                            <span class="badge badge-warning">Warning</span>
+                            {% else %}
+                            <span class="badge badge-info">Recent</span>
+                            {% endif %}
+                        </td>
+                        <td class="font-mono">{{ device.serial_number }}</td>
+                        <td>{{ device.device_type|device_type_display }}</td>
+                        <td>
+                            {% if device.days_offline is not None %}
+                            <span class="{% if device.days_offline >= 7 %}text-error font-bold{% elif device.days_offline >= 3 %}text-warning{% endif %}">
+                                {{ device.days_offline }} days
+                            </span>
+                            {% else %}
+                            <span class="text-base-content/60">Unknown</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if device.last_reading_at %}
+                            {{ device.last_reading_at|friendly_date }}
+                            {% else %}
+                            <span class="text-base-content/60">Never</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="flex gap-2">
+                                <a href="{% url 'device_detail' device.id %}" class="btn btn-ghost btn-sm">View</a>
+                                <a href="{% url 'ticket_create' %}?device_id={{ device.id }}&category=device"
+                                   class="btn btn-outline btn-sm btn-error">
+                                    Create Ticket
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-12 text-base-content/60">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-16 h-16 mx-auto mb-4 text-success">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+            </svg>
+            <p class="text-lg">All devices are online!</p>
+        </div>
+        {% endif %}
+    </div>
+</div>

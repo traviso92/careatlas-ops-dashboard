@@ -1,0 +1,116 @@
+<div data-step="3">
+    <h3 class="font-semibold mb-4">Step 3: Confirm & Submit</h3>
+
+    <form hx-post="{% url 'order_submit' %}" hx-swap="none">
+        {% csrf_token %}
+        <input type="hidden" name="patient_id" value="{{ patient.id }}" />
+        {% for device in selected_devices %}
+        <input type="hidden" name="devices" value="{{ device.type }}" />
+        {% endfor %}
+
+        <!-- Order Summary -->
+        <div class="card bg-base-200 mb-4">
+            <div class="card-body">
+                <h4 class="font-medium mb-2">Order Summary</h4>
+                <p class="text-sm"><strong>Patient:</strong> {{ patient.first_name }} {{ patient.last_name }} ({{ patient.mrn }})</p>
+                <p class="text-sm mt-2"><strong>Devices:</strong></p>
+                <ul class="list-disc list-inside text-sm">
+                    {% for device in selected_devices %}
+                    <li>{{ device.name }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        <!-- Shipping Address -->
+        <div class="card bg-base-200 mb-4">
+            <div class="card-body">
+                <h4 class="font-medium mb-2">Shipping Address</h4>
+
+                <div class="grid grid-cols-1 gap-4">
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text">Recipient Name</span>
+                        </label>
+                        <input type="text"
+                               name="shipping_name"
+                               value="{{ patient.first_name }} {{ patient.last_name }}"
+                               class="input input-bordered w-full"
+                               required />
+                    </div>
+
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text">Street Address</span>
+                        </label>
+                        <input type="text"
+                               name="shipping_street"
+                               value="{{ address.street }}"
+                               class="input input-bordered w-full"
+                               required />
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-4">
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text">City</span>
+                            </label>
+                            <input type="text"
+                                   name="shipping_city"
+                                   value="{{ address.city }}"
+                                   class="input input-bordered w-full"
+                                   required />
+                        </div>
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text">State</span>
+                            </label>
+                            <input type="text"
+                                   name="shipping_state"
+                                   value="{{ address.state }}"
+                                   class="input input-bordered w-full"
+                                   maxlength="2"
+                                   required />
+                        </div>
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text">ZIP</span>
+                            </label>
+                            <input type="text"
+                                   name="shipping_zip"
+                                   value="{{ address.zip_code }}"
+                                   class="input input-bordered w-full"
+                                   required />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notes -->
+        <div class="form-control mb-4">
+            <label class="label">
+                <span class="label-text">Order Notes (optional)</span>
+            </label>
+            <textarea name="notes"
+                      class="textarea textarea-bordered"
+                      rows="2"
+                      placeholder="Any special instructions..."></textarea>
+        </div>
+
+        <div class="flex justify-between mt-6">
+            <button type="button"
+                    class="btn btn-ghost"
+                    hx-get="{% url 'order_create' %}?step=2&patient_id={{ patient.id }}"
+                    hx-target="#order-form-content">
+                Back
+            </button>
+            <button type="submit" class="btn btn-primary">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                </svg>
+                Submit Order
+            </button>
+        </div>
+    </form>
+</div>

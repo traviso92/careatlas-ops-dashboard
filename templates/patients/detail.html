@@ -1,0 +1,234 @@
+{% extends "base.html" %}
+{% load core_tags %}
+
+{% block title %}{{ patient.first_name }} {{ patient.last_name }} - CareAtlas Ops{% endblock %}
+
+{% block breadcrumbs %}
+<li><a href="{% url 'patient_list' %}">Patients</a></li>
+<li>{{ patient.first_name }} {{ patient.last_name }}</li>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Patient Header -->
+    <div class="card bg-base-100 shadow">
+        <div class="card-body">
+            <div class="flex justify-between items-start">
+                <div class="flex gap-4">
+                    <div class="avatar placeholder">
+                        <div class="bg-primary text-primary-content rounded-full w-16">
+                            <span class="text-xl">{{ patient.first_name.0 }}{{ patient.last_name.0 }}</span>
+                        </div>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-bold">{{ patient.first_name }} {{ patient.last_name }}</h1>
+                        <p class="text-base-content/60">MRN: {{ patient.mrn }}</p>
+                        <div class="flex gap-2 mt-2">
+                            <span class="badge badge-primary">{{ patient.program }}</span>
+                            <span class="badge {% if patient.status == 'active' %}badge-success{% else %}badge-ghost{% endif %}">
+                                {{ patient.status|title }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex gap-2">
+                    <a href="{% url 'patient_edit' patient.id %}" class="btn btn-outline btn-sm">Edit</a>
+                    <a href="{% url 'order_create' %}?patient_id={{ patient.id }}" class="btn btn-primary btn-sm">New Order</a>
+                </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <h3 class="font-semibold mb-2">Contact Information</h3>
+                    <p class="text-sm">{{ patient.email|default:"-" }}</p>
+                    <p class="text-sm">{{ patient.phone|default:"-" }}</p>
+                </div>
+                <div>
+                    <h3 class="font-semibold mb-2">Address</h3>
+                    {% if patient.address %}
+                    <p class="text-sm">{{ patient.address.street }}</p>
+                    <p class="text-sm">{{ patient.address.city }}, {{ patient.address.state }} {{ patient.address.zip_code }}</p>
+                    {% else %}
+                    <p class="text-sm text-base-content/60">No address on file</p>
+                    {% endif %}
+                </div>
+                <div>
+                    <h3 class="font-semibold mb-2">Conditions</h3>
+                    <div class="flex flex-wrap gap-1">
+                        {% for condition in patient.conditions %}
+                        <span class="badge badge-outline badge-sm">{{ condition }}</span>
+                        {% empty %}
+                        <span class="text-sm text-base-content/60">None listed</span>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs tabs-boxed bg-base-100 p-1">
+        <a class="tab tab-active" data-tab="devices">Devices</a>
+        <a class="tab" data-tab="vitals">Vitals</a>
+        <a class="tab" data-tab="orders">Orders</a>
+    </div>
+
+    <!-- Devices Tab -->
+    <div id="tab-devices" class="card bg-base-100 shadow">
+        <div class="card-body">
+            <h2 class="card-title">Assigned Devices</h2>
+            {% if patient.device_details %}
+            <div class="overflow-x-auto">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Serial Number</th>
+                            <th>Type</th>
+                            <th>Status</th>
+                            <th>Last Reading</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for device in patient.device_details %}
+                        <tr>
+                            <td>{{ device.serial_number }}</td>
+                            <td>{{ device.device_type|title }}</td>
+                            <td>
+                                <span class="badge {% if device.status == 'active' %}badge-success{% elif device.status == 'offline' %}badge-warning{% else %}badge-ghost{% endif %}">
+                                    {{ device.status|title }}
+                                </span>
+                            </td>
+                            <td>{% if device.last_reading_at %}{{ device.last_reading_at|friendly_date }}{% else %}-{% endif %}</td>
+                            <td>
+                                <a href="{% url 'device_detail' device.id %}" class="btn btn-ghost btn-xs">View</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-8 text-base-content/60">
+                <p>No devices assigned</p>
+                <a href="{% url 'order_create' %}?patient_id={{ patient.id }}" class="btn btn-primary btn-sm mt-2">Order Device</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Vitals Tab -->
+    <div id="tab-vitals" class="space-y-6 hidden">
+        {% if vitals %}
+        <!-- Vitals Chart -->
+        {% include "vitals/partials/vitals_chart.html" with patient_id=patient.id %}
+
+        <!-- Vitals Table -->
+        <div class="card bg-base-100 shadow">
+            <div class="card-body">
+                <h2 class="card-title">Recent Readings</h2>
+                <div class="overflow-x-auto">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Type</th>
+                                <th>Readings</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for vital in vitals|slice:":10" %}
+                            <tr>
+                                <td>{{ vital.timestamp|slice:":16" }}</td>
+                                <td>{{ vital.device_type|default:"-"|title }}</td>
+                                <td>
+                                    {% for key, value in vital.readings.items %}
+                                    <span class="badge badge-outline badge-sm mr-1">{{ key }}: {{ value }}</span>
+                                    {% endfor %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="card bg-base-100 shadow">
+            <div class="card-body text-center py-8 text-base-content/60">
+                <p>No vitals recorded yet</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Orders Tab -->
+    <div id="tab-orders" class="card bg-base-100 shadow hidden">
+        <div class="card-body">
+            <h2 class="card-title">Order History</h2>
+            {% if orders %}
+            <div class="overflow-x-auto">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Order #</th>
+                            <th>Date</th>
+                            <th>Items</th>
+                            <th>Status</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in orders %}
+                        <tr>
+                            <td>{{ order.order_number }}</td>
+                            <td>{{ order.created_at|friendly_date }}</td>
+                            <td>{{ order.items|length }} item(s)</td>
+                            <td>
+                                {% include "orders/partials/status_badge.html" %}
+                            </td>
+                            <td>
+                                <a href="{% url 'order_detail' order.id %}" class="btn btn-ghost btn-xs">View</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-8 text-base-content/60">
+                <p>No orders found</p>
+                <a href="{% url 'order_create' %}?patient_id={{ patient.id }}" class="btn btn-primary btn-sm mt-2">Create Order</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+<script>
+    // Tab switching
+    document.querySelectorAll('.tabs .tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+            document.querySelectorAll('.tabs .tab').forEach(t => t.classList.remove('tab-active'));
+            this.classList.add('tab-active');
+
+            const tabName = this.dataset.tab;
+            document.querySelectorAll('[id^="tab-"]').forEach(panel => {
+                panel.classList.add('hidden');
+            });
+            document.getElementById('tab-' + tabName).classList.remove('hidden');
+
+            // Initialize chart when vitals tab is shown
+            if (tabName === 'vitals' && typeof initVitalsChart === 'function' && !window.vitalsChartInitialized) {
+                initVitalsChart();
+                window.vitalsChartInitialized = true;
+            }
+        });
+    });
+</script>
+{% endblock %}

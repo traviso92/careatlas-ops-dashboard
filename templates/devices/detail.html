@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+
+{% block title %}Device {{ device.serial_number }} - CareAtlas Ops{% endblock %}
+
+{% block breadcrumbs %}
+<li><a href="{% url 'device_list' %}">Devices</a></li>
+<li>{{ device.serial_number }}</li>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Device Header -->
+    <div class="card bg-base-100 shadow">
+        <div class="card-body">
+            <div class="flex justify-between items-start">
+                <div>
+                    <h1 class="text-2xl font-bold">{{ device.serial_number }}</h1>
+                    <p class="text-base-content/60">{{ device.device_type|title }}</p>
+                    <div class="mt-2" id="device-status">
+                        {% include "devices/partials/status_badge.html" %}
+                    </div>
+                </div>
+                <div class="flex gap-2">
+                    {% if device.patient_id %}
+                    <form hx-post="{% url 'device_return' device.id %}" hx-swap="none">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-outline btn-warning btn-sm">Return Device</button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <h3 class="font-semibold mb-2">Device Info</h3>
+                    <p class="text-sm"><span class="text-base-content/60">Model:</span> {{ device.device_model|default:"-" }}</p>
+                    <p class="text-sm"><span class="text-base-content/60">HWI ID:</span> {{ device.hwi_device_id|default:"-" }}</p>
+                    <p class="text-sm"><span class="text-base-content/60">Manufacturer:</span> {{ device.manufacturer|default:"Tenovi" }}</p>
+                </div>
+                <div>
+                    <h3 class="font-semibold mb-2">Assignment</h3>
+                    {% if patient %}
+                    <p class="text-sm">
+                        <a href="{% url 'patient_detail' patient.id %}" class="link link-primary">
+                            {{ patient.first_name }} {{ patient.last_name }}
+                        </a>
+                    </p>
+                    <p class="text-sm text-base-content/60">MRN: {{ patient.mrn }}</p>
+                    <p class="text-sm text-base-content/60">Assigned: {{ device.assigned_at|slice:":10"|default:"-" }}</p>
+                    {% else %}
+                    <p class="text-sm text-base-content/60">Not assigned</p>
+                    {% endif %}
+                </div>
+                <div>
+                    <h3 class="font-semibold mb-2">Connectivity</h3>
+                    <p class="text-sm">
+                        <span class="text-base-content/60">Last Reading:</span>
+                        {{ device.last_reading_at|slice:":16"|default:"Never" }}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Update -->
+    <div class="card bg-base-100 shadow">
+        <div class="card-body">
+            <h2 class="card-title">Update Status</h2>
+            <form hx-post="{% url 'device_update_status' device.id %}"
+                  hx-target="#device-status"
+                  hx-swap="innerHTML"
+                  class="flex gap-4 items-end">
+                {% csrf_token %}
+                <div class="form-control flex-1">
+                    <label class="label">
+                        <span class="label-text">New Status</span>
+                    </label>
+                    <select name="status" class="select select-bordered">
+                        {% for status_code, status_label in status_choices %}
+                        <option value="{{ status_code }}" {% if device.status == status_code %}selected{% endif %}>
+                            {{ status_label }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-control flex-1">
+                    <label class="label">
+                        <span class="label-text">Notes</span>
+                    </label>
+                    <input type="text" name="notes" class="input input-bordered" placeholder="Optional notes..." />
+                </div>
+                <button type="submit" class="btn btn-primary">Update</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Status History -->
+    <div class="card bg-base-100 shadow">
+        <div class="card-body">
+            <h2 class="card-title">Status History</h2>
+            {% if device.status_history %}
+            <ul class="timeline timeline-vertical">
+                {% for entry in device.status_history reversed %}
+                <li>
+                    {% if not forloop.first %}<hr>{% endif %}
+                    <div class="timeline-start">{{ entry.changed_at|slice:":16" }}</div>
+                    <div class="timeline-middle">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                    <div class="timeline-end timeline-box">
+                        <span class="font-medium">{{ entry.status|title }}</span>
+                        {% if entry.notes %}
+                        <p class="text-sm text-base-content/60">{{ entry.notes }}</p>
+                        {% endif %}
+                    </div>
+                    {% if not forloop.last %}<hr>{% endif %}
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p class="text-base-content/60">No status history available</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Recent Vitals -->
+    {% if vitals %}
+    <div class="card bg-base-100 shadow">
+        <div class="card-body">
+            <h2 class="card-title">Recent Readings</h2>
+            <div class="overflow-x-auto">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>Readings</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for vital in vitals %}
+                        <tr>
+                            <td>{{ vital.timestamp|slice:":16" }}</td>
+                            <td>
+                                {% for key, value in vital.readings.items %}
+                                <span class="badge badge-outline badge-sm mr-1">{{ key }}: {{ value }}</span>
+                                {% endfor %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

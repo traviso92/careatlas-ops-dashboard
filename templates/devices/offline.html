@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}Offline Devices - CareAtlas Ops{% endblock %}
+
+{% block breadcrumbs %}
+<li><a href="{% url 'device_list' %}">Devices</a></li>
+<li>Offline</li>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Page Header -->
+    <div class="flex justify-between items-center">
+        <div>
+            <h1 class="text-2xl font-bold">Offline Devices</h1>
+            <p class="text-base-content/60">Devices that haven't reported in 3+ days</p>
+        </div>
+        <span class="badge badge-warning badge-lg">{{ total }} device{% if total != 1 %}s{% endif %}</span>
+    </div>
+
+    <!-- Offline Devices List -->
+    <div id="offline-list">
+        {% include "devices/partials/offline_list.html" %}
+    </div>
+</div>
+{% endblock %}

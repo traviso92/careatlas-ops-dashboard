@@ -1,0 +1,12 @@
+<dialog id="modal" class="modal modal-open" x-data @keydown.escape.window="$el.close()">
+    <div class="modal-box {% block modal_size %}max-w-lg{% endblock %}">
+        <form method="dialog">
+            <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+        </form>
+        <h3 class="font-bold text-lg mb-4">{% block modal_title %}Modal{% endblock %}</h3>
+        {% block modal_content %}{% endblock %}
+    </div>
+    <form method="dialog" class="modal-backdrop">
+        <button>close</button>
+    </form>
+</dialog>

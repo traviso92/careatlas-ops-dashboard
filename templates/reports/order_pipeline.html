@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% load core_tags %}
+
+{% block title %}Order Pipeline Report - CareAtlas Ops{% endblock %}
+
+{% block breadcrumbs %}
+<li><a href="{% url 'reports_dashboard' %}">Reports</a></li>
+<li>Order Pipeline</li>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Page Header -->
+    <div class="flex justify-between items-center">
+        <div>
+            <h1 class="text-2xl font-bold">Order Pipeline Report</h1>
+            <p class="text-base-content/60">Orders created in the last {{ days }} days</p>
+        </div>
+        <select class="select select-bordered"
+                hx-get="{% url 'order_pipeline_report' %}"
+                hx-target="#pipeline-content"
+                hx-push-url="true"
+                name="days">
+            <option value="7" {% if days == 7 %}selected{% endif %}>Last 7 days</option>
+            <option value="30" {% if days == 30 %}selected{% endif %}>Last 30 days</option>
+            <option value="90" {% if days == 90 %}selected{% endif %}>Last 90 days</option>
+        </select>
+    </div>
+
+    <div id="pipeline-content">
+        {% include "reports/partials/order_pipeline_table.html" %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+    // Orders by day chart
+    const ordersCanvas = document.getElementById('orders-by-day-chart');
+    if (ordersCanvas) {
+        fetch(`{% url 'order_chart_data' %}?days={{ days }}`)
+            .then(response => response.json())
+            .then(data => {
+                new Chart(ordersCanvas, {
+                    type: 'bar',
+                    data: {
+                        labels: data.data.map(d => d.date),
+                        datasets: [{
+                            label: 'Orders',
+                            data: data.data.map(d => d.count),
+                            backgroundColor: 'rgba(59, 130, 246, 0.7)',
+                            borderColor: 'rgb(59, 130, 246)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: { display: false }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: { stepSize: 1 }
+                            },
+                            x: {
+                                ticks: { maxTicksLimit: 10 }
+                            }
+                        }
+                    }
+                });
+            });
+    }
+
+    // Status distribution pie chart
+    const statusCanvas = document.getElementById('status-distribution-chart');
+    if (statusCanvas) {
+        const statusData = {{ status_counts|safe }};
+        const labels = Object.keys(statusData);
+        const values = Object.values(statusData);
+        const colors = {
+            'pending': '#facc15',
+            'processing': '#fb923c',
+            'shipped': '#3b82f6',
+            'delivered': '#22c55e',
+            'completed': '#22c55e',
+            'cancelled': '#ef4444'
+        };
+
+        new Chart(statusCanvas, {
+            type: 'doughnut',
+            data: {
+                labels: labels.map(l => l.charAt(0).toUpperCase() + l.slice(1)),
+                datasets: [{
+                    data: values,
+                    backgroundColor: labels.map(l => colors[l] || '#9ca3af')
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+    }
+</script>
+{% endblock %}

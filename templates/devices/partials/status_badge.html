@@ -1,0 +1,5 @@
+{% with status=device.status %}
+<span class="badge {% if status == 'active' %}badge-success{% elif status == 'assigned' %}badge-info{% elif status == 'offline' %}badge-warning{% elif status == 'lost' %}badge-error{% elif status == 'returned' %}badge-ghost{% else %}badge-outline{% endif %} badge-sm">
+    {{ status|title }}
+</span>
+{% endwith %}

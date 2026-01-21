@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block title %}Edit {{ patient.first_name }} {{ patient.last_name }} - CareAtlas Ops{% endblock %}
+
+{% block breadcrumbs %}
+<li><a href="{% url 'patient_list' %}">Patients</a></li>
+<li><a href="{% url 'patient_detail' patient.id %}">{{ patient.first_name }} {{ patient.last_name }}</a></li>
+<li>Edit</li>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="card bg-base-100 shadow">
+        <div class="card-body">
+            <h2 class="card-title">Edit Patient</h2>
+            {% include "patients/partials/patient_form.html" %}
+        </div>
+    </div>
+</div>
+{% endblock %}

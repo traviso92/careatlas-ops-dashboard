@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block title %}Vitals - CareAtlas Ops{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <h1 class="text-2xl font-bold">Patient Vitals</h1>
+
+    <div class="card bg-base-100 shadow">
+        <div class="card-body">
+            {% include "vitals/partials/vitals_table.html" %}
+        </div>
+    </div>
+</div>
+{% endblock %}

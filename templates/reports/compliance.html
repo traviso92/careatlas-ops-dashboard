@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% load core_tags %}
+
+{% block title %}Compliance Report - CareAtlas Ops{% endblock %}
+
+{% block breadcrumbs %}
+<li><a href="{% url 'reports_dashboard' %}">Reports</a></li>
+<li>Compliance</li>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Page Header -->
+    <div class="flex justify-between items-center">
+        <div>
+            <h1 class="text-2xl font-bold">Compliance Report</h1>
+            <p class="text-base-content/60">Devices with readings in the last {{ days }} days</p>
+        </div>
+        <select class="select select-bordered"
+                hx-get="{% url 'compliance_report' %}"
+                hx-target="#compliance-content"
+                hx-push-url="true"
+                name="days">
+            <option value="7" {% if days == 7 %}selected{% endif %}>Last 7 days</option>
+            <option value="30" {% if days == 30 %}selected{% endif %}>Last 30 days</option>
+            <option value="90" {% if days == 90 %}selected{% endif %}>Last 90 days</option>
+        </select>
+    </div>
+
+    <div id="compliance-content">
+        {% include "reports/partials/compliance_table.html" %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,12 @@
+{% if messages %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        {% for message in messages %}
+        const toastContainer = document.querySelector('[x-data="toastManager()"]');
+        if (toastContainer && toastContainer.__x) {
+            toastContainer.__x.$data.addToast('{{ message|escapejs }}', '{{ message.tags|default:"info" }}');
+        }
+        {% endfor %}
+    });
+</script>
+{% endif %}

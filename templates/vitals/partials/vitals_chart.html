@@ -1,0 +1,139 @@
+<div class="card bg-base-100">
+    <div class="card-body">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="font-semibold">Vitals Trend</h3>
+            <select id="chart-range"
+                    class="select select-sm select-bordered"
+                    onchange="updateVitalsChart(this.value)">
+                <option value="7">Last 7 days</option>
+                <option value="30" selected>Last 30 days</option>
+                <option value="90">Last 90 days</option>
+            </select>
+        </div>
+        <div class="relative" style="height: 250px;">
+            <canvas id="vitals-chart"></canvas>
+        </div>
+        <div class="flex justify-center gap-4 mt-4">
+            <button class="btn btn-sm btn-ghost" data-device-type="blood_pressure" onclick="filterChartByType('blood_pressure')">
+                Blood Pressure
+            </button>
+            <button class="btn btn-sm btn-ghost" data-device-type="weight_scale" onclick="filterChartByType('weight_scale')">
+                Weight
+            </button>
+            <button class="btn btn-sm btn-ghost" data-device-type="blood_glucose" onclick="filterChartByType('blood_glucose')">
+                Glucose
+            </button>
+            <button class="btn btn-sm btn-ghost" data-device-type="pulse_oximeter" onclick="filterChartByType('pulse_oximeter')">
+                SpO2
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+let vitalsChart = null;
+let currentDeviceType = 'blood_pressure';
+const patientId = '{{ patient_id }}';
+
+function initVitalsChart() {
+    const ctx = document.getElementById('vitals-chart');
+    if (!ctx) return;
+
+    vitalsChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: []
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                intersect: false,
+                mode: 'index',
+            },
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                tooltip: {
+                    callbacks: {
+                        title: function(tooltipItems) {
+                            const date = new Date(tooltipItems[0].label);
+                            return date.toLocaleDateString('en-US', {
+                                month: 'short',
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                            });
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    type: 'time',
+                    time: {
+                        unit: 'day',
+                        displayFormats: {
+                            day: 'MMM d'
+                        }
+                    },
+                    title: {
+                        display: true,
+                        text: 'Date'
+                    }
+                },
+                y: {
+                    beginAtZero: false,
+                    title: {
+                        display: true,
+                        text: 'Value'
+                    }
+                }
+            }
+        }
+    });
+
+    // Load initial data
+    updateVitalsChart(30);
+}
+
+function updateVitalsChart(days) {
+    const url = `/vitals/patient/${patientId}/chart/?days=${days}&device_type=${currentDeviceType}`;
+
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            if (vitalsChart) {
+                vitalsChart.data.labels = data.labels;
+                vitalsChart.data.datasets = data.datasets;
+                vitalsChart.update();
+            }
+        })
+        .catch(error => console.error('Error loading vitals data:', error));
+}
+
+function filterChartByType(deviceType) {
+    currentDeviceType = deviceType;
+
+    // Update button styles
+    document.querySelectorAll('[data-device-type]').forEach(btn => {
+        btn.classList.remove('btn-active', 'btn-primary');
+        btn.classList.add('btn-ghost');
+    });
+    document.querySelector(`[data-device-type="${deviceType}"]`).classList.remove('btn-ghost');
+    document.querySelector(`[data-device-type="${deviceType}"]`).classList.add('btn-active', 'btn-primary');
+
+    // Reload chart data
+    const days = document.getElementById('chart-range').value;
+    updateVitalsChart(days);
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    initVitalsChart();
+    // Set initial active button
+    filterChartByType('blood_pressure');
+});
+</script>

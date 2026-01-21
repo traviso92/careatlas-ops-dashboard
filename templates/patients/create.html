@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}Create Patient - CareAtlas Ops{% endblock %}
+
+{% block breadcrumbs %}
+<li><a href="{% url 'patient_list' %}">Patients</a></li>
+<li>Create</li>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="card bg-base-100 shadow">
+        <div class="card-body">
+            <h2 class="card-title">Create New Patient</h2>
+            {% include "patients/partials/patient_form.html" %}
+        </div>
+    </div>
+</div>
+{% endblock %}

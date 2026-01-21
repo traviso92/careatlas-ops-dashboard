@@ -1,0 +1,41 @@
+<div class="stats-grid">
+    <div class="stat bg-base-100 shadow rounded-lg">
+        <div class="stat-figure text-primary">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />
+            </svg>
+        </div>
+        <div class="stat-title">Active Patients</div>
+        <div class="stat-value text-primary">{{ patient_count|default:0 }}</div>
+    </div>
+
+    <div class="stat bg-base-100 shadow rounded-lg">
+        <div class="stat-figure text-secondary">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 0 1-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 0 0-3.213-9.193 2.056 2.056 0 0 0-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 0 0-10.026 0 1.106 1.106 0 0 0-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" />
+            </svg>
+        </div>
+        <div class="stat-title">Pending Orders</div>
+        <div class="stat-value text-secondary">{{ order_stats.pending|default:0 }}</div>
+    </div>
+
+    <div class="stat bg-base-100 shadow rounded-lg">
+        <div class="stat-figure text-accent">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 0 1-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 0 1 4.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0 1 12 15a9.065 9.065 0 0 1-6.23.693L5 15.5m14.8-.2-.005.004m-6.17 3.75v.22a.75.75 0 0 1-.638.74l-.586.092a.75.75 0 0 0-.647.725v.32a.75.75 0 0 0 .75.75h3a.75.75 0 0 0 .75-.75v-.32a.75.75 0 0 0-.647-.725l-.586-.092a.75.75 0 0 1-.638-.74v-.22" />
+            </svg>
+        </div>
+        <div class="stat-title">Active Devices</div>
+        <div class="stat-value text-accent">{{ device_stats.by_status.active|default:0 }}</div>
+    </div>
+
+    <div class="stat bg-base-100 shadow rounded-lg">
+        <div class="stat-figure text-warning">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+            </svg>
+        </div>
+        <div class="stat-title">Offline Devices</div>
+        <div class="stat-value text-warning">{{ device_stats.offline_alerts|default:0 }}</div>
+    </div>
+</div>

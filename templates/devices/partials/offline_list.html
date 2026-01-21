@@ -1,0 +1,103 @@
+{% load core_tags %}
+{% if devices %}
+<div class="card bg-base-100 shadow">
+    <div class="card-body">
+        <!-- Severity Legend -->
+        <div class="flex gap-4 mb-4 text-sm">
+            <div class="flex items-center gap-2">
+                <span class="badge badge-error badge-sm"></span>
+                <span>Critical (7+ days)</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="badge badge-warning badge-sm"></span>
+                <span>Warning (3-6 days)</span>
+            </div>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Severity</th>
+                        <th>Device</th>
+                        <th>Patient</th>
+                        <th>Last Reading</th>
+                        <th>Days Offline</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for device in devices %}
+                    <tr class="hover {% if device.severity == 'critical' %}bg-error/5{% endif %}">
+                        <td>
+                            {% if device.severity == 'critical' %}
+                            <div class="flex items-center gap-2">
+                                <span class="badge badge-error">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+                                    </svg>
+                                </span>
+                            </div>
+                            {% else %}
+                            <span class="badge badge-warning">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                                </svg>
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="font-mono">{{ device.serial_number }}</div>
+                            <div class="text-sm text-base-content/60">{{ device.device_type|device_type_display }}</div>
+                        </td>
+                        <td>
+                            {% if device.patient %}
+                            <a href="{% url 'patient_detail' device.patient.id %}" class="link link-primary">
+                                {{ device.patient.first_name }} {{ device.patient.last_name }}
+                            </a>
+                            <div class="text-sm text-base-content/60">{{ device.patient.mrn }}</div>
+                            {% else %}
+                            <span class="text-base-content/60">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if device.last_reading_at %}
+                            {{ device.last_reading_at|friendly_date }}
+                            {% else %}
+                            <span class="text-base-content/60">Never</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if device.severity == 'critical' %}
+                            <span class="badge badge-error">{{ device.days_offline }} days</span>
+                            {% else %}
+                            <span class="badge badge-warning">{{ device.days_offline }} days</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'device_detail' device.id %}"
+                               class="btn btn-ghost btn-sm"
+                               hx-get="{% url 'device_detail' device.id %}"
+                               hx-target="body"
+                               hx-push-url="true">
+                                View
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="card bg-base-100 shadow">
+    <div class="card-body text-center py-12">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-16 h-16 mx-auto mb-4 text-success">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+        </svg>
+        <p class="text-base-content/60">All devices are online</p>
+        <p class="text-sm text-base-content/40">No connectivity issues detected</p>
+    </div>
+</div>
+{% endif %}

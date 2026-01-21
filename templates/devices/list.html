@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% load core_tags %}
+
+{% block title %}Devices - CareAtlas Ops{% endblock %}
+
+{% block breadcrumbs %}
+<li>Devices</li>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Page Header -->
+    <div class="flex justify-between items-center">
+        <h1 class="text-2xl font-bold">Devices</h1>
+    </div>
+
+    <!-- Status Filter Tabs -->
+    <div class="tabs tabs-boxed bg-base-100 p-1">
+        <a href="{% url 'device_list' %}"
+           class="tab {% if not current_status %}tab-active{% endif %}"
+           hx-get="{% url 'device_list' %}"
+           hx-target="#device-list"
+           hx-push-url="true">
+            All ({{ total|default:0 }})
+        </a>
+        {% for status_code, status_label in status_choices %}
+        <a href="{% url 'device_list' %}?status={{ status_code }}"
+           class="tab {% if current_status == status_code %}tab-active{% endif %}"
+           hx-get="{% url 'device_list' %}?status={{ status_code }}"
+           hx-target="#device-list"
+           hx-push-url="true">
+            {{ status_label }} ({{ status_counts|get_item:status_code }})
+        </a>
+        {% endfor %}
+    </div>
+
+    <!-- Search -->
+    <div class="card bg-base-100 shadow">
+        <div class="card-body py-4">
+            <div class="form-control">
+                <input type="text"
+                       name="q"
+                       value="{{ query }}"
+                       placeholder="Search by serial number..."
+                       class="input input-bordered w-full max-w-md"
+                       hx-get="{% url 'device_list' %}{% if current_status %}?status={{ current_status }}{% endif %}"
+                       hx-trigger="keyup changed delay:300ms"
+                       hx-target="#device-list"
+                       hx-push-url="true" />
+            </div>
+        </div>
+    </div>
+
+    <!-- Device List -->
+    <div id="device-list">
+        {% include "devices/partials/device_table.html" %}
+    </div>
+</div>
+{% endblock %}

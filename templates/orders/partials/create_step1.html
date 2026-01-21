@@ -1,0 +1,72 @@
+<div data-step="1">
+    <h3 class="font-semibold mb-4">Step 1: Select Patient</h3>
+
+    <div class="form-control mb-4">
+        <label class="label">
+            <span class="label-text">Search for a patient</span>
+        </label>
+        <input type="text"
+               id="patient-search"
+               placeholder="Search by name, MRN, or email..."
+               class="input input-bordered w-full"
+               hx-get="{% url 'patient_search_api' %}"
+               hx-trigger="keyup changed delay:300ms"
+               hx-target="#patient-search-results" />
+    </div>
+
+    <div id="patient-search-results" class="space-y-2"></div>
+
+    <div id="selected-patient" class="hidden mt-4 p-4 bg-base-200 rounded-lg">
+        <div class="flex justify-between items-center">
+            <div>
+                <span class="font-medium" id="selected-patient-name"></span>
+                <span class="text-base-content/60 ml-2" id="selected-patient-mrn"></span>
+            </div>
+            <button type="button" class="btn btn-ghost btn-sm" onclick="clearSelectedPatient()">Change</button>
+        </div>
+    </div>
+
+    <div class="flex justify-end mt-6">
+        <button type="button"
+                id="step1-next"
+                class="btn btn-primary"
+                disabled
+                hx-get="{% url 'order_create' %}?step=2"
+                hx-target="#order-form-content"
+                hx-include="#patient-id-input">
+            Next: Choose Devices
+        </button>
+    </div>
+
+    <input type="hidden" name="patient_id" id="patient-id-input" value="" />
+</div>
+
+<script>
+    function selectPatient(id, name, mrn) {
+        document.getElementById('patient-id-input').value = id;
+        document.getElementById('selected-patient-name').textContent = name;
+        document.getElementById('selected-patient-mrn').textContent = 'MRN: ' + mrn;
+        document.getElementById('selected-patient').classList.remove('hidden');
+        document.getElementById('patient-search-results').innerHTML = '';
+        document.getElementById('patient-search').value = '';
+        document.getElementById('step1-next').disabled = false;
+    }
+
+    function clearSelectedPatient() {
+        document.getElementById('patient-id-input').value = '';
+        document.getElementById('selected-patient').classList.add('hidden');
+        document.getElementById('step1-next').disabled = true;
+    }
+
+    // Handle search results click
+    document.body.addEventListener('click', function(e) {
+        const result = e.target.closest('[data-patient-id]');
+        if (result) {
+            selectPatient(
+                result.dataset.patientId,
+                result.dataset.patientName,
+                result.dataset.patientMrn
+            );
+        }
+    });
+</script>

@@ -1,0 +1,218 @@
+{% extends "base.html" %}
+{% load core_tags %}
+
+{% block title %}Reports - CareAtlas Ops{% endblock %}
+
+{% block breadcrumbs %}
+<li>Reports</li>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Page Header -->
+    <div class="flex justify-between items-center">
+        <h1 class="text-2xl font-bold">Reports Dashboard</h1>
+        <select id="date-range"
+                class="select select-bordered"
+                onchange="updateDateRange(this.value)">
+            <option value="7" {% if days == 7 %}selected{% endif %}>Last 7 days</option>
+            <option value="30" {% if days == 30 %}selected{% endif %}>Last 30 days</option>
+            <option value="90" {% if days == 90 %}selected{% endif %}>Last 90 days</option>
+        </select>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Compliance Card -->
+        <a href="{% url 'compliance_report' %}?days={{ days }}" class="card bg-base-100 shadow hover:shadow-lg transition-shadow">
+            <div class="card-body">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h2 class="card-title text-base">Device Compliance</h2>
+                        <p class="text-3xl font-bold mt-2 {% if compliance_stats.rate >= 80 %}text-success{% elif compliance_stats.rate >= 60 %}text-warning{% else %}text-error{% endif %}">
+                            {{ compliance_stats.rate }}%
+                        </p>
+                        <p class="text-sm text-base-content/60 mt-1">
+                            {{ compliance_stats.compliant }} of {{ compliance_stats.total }} devices
+                        </p>
+                    </div>
+                    <div class="radial-progress {% if compliance_stats.rate >= 80 %}text-success{% elif compliance_stats.rate >= 60 %}text-warning{% else %}text-error{% endif %}"
+                         style="--value:{{ compliance_stats.rate }}; --size:4rem; --thickness:4px;"
+                         role="progressbar">
+                    </div>
+                </div>
+                <div class="card-actions justify-end mt-4">
+                    <span class="text-sm text-primary">View Details &rarr;</span>
+                </div>
+            </div>
+        </a>
+
+        <!-- Connectivity Card -->
+        <a href="{% url 'connectivity_report' %}?days={{ days }}" class="card bg-base-100 shadow hover:shadow-lg transition-shadow">
+            <div class="card-body">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h2 class="card-title text-base">Device Connectivity</h2>
+                        <p class="text-3xl font-bold mt-2 {% if connectivity_stats.online_rate >= 90 %}text-success{% elif connectivity_stats.online_rate >= 70 %}text-warning{% else %}text-error{% endif %}">
+                            {{ connectivity_stats.online_rate }}%
+                        </p>
+                        <p class="text-sm text-base-content/60 mt-1">
+                            {{ connectivity_stats.offline }} device{% if connectivity_stats.offline != 1 %}s{% endif %} offline
+                        </p>
+                    </div>
+                    <div class="flex flex-col items-end">
+                        <div class="badge badge-success gap-1">
+                            <span class="w-2 h-2 rounded-full bg-current"></span>
+                            {{ connectivity_stats.online }}
+                        </div>
+                        <div class="badge badge-error gap-1 mt-1">
+                            <span class="w-2 h-2 rounded-full bg-current"></span>
+                            {{ connectivity_stats.offline }}
+                        </div>
+                    </div>
+                </div>
+                <div class="card-actions justify-end mt-4">
+                    <span class="text-sm text-primary">View Details &rarr;</span>
+                </div>
+            </div>
+        </a>
+
+        <!-- Order Pipeline Card -->
+        <a href="{% url 'order_pipeline_report' %}?days={{ days }}" class="card bg-base-100 shadow hover:shadow-lg transition-shadow">
+            <div class="card-body">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h2 class="card-title text-base">Order Pipeline</h2>
+                        <p class="text-3xl font-bold mt-2">{{ order_stats.total }}</p>
+                        <p class="text-sm text-base-content/60 mt-1">
+                            orders in last {{ days }} days
+                        </p>
+                    </div>
+                    <div class="flex flex-col gap-1 text-sm">
+                        <div class="flex items-center gap-2">
+                            <span class="badge badge-warning badge-xs"></span>
+                            Pending: {{ order_stats.pending }}
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="badge badge-info badge-xs"></span>
+                            Shipped: {{ order_stats.shipped }}
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="badge badge-success badge-xs"></span>
+                            Delivered: {{ order_stats.delivered }}
+                        </div>
+                    </div>
+                </div>
+                <div class="card-actions justify-end mt-4">
+                    <span class="text-sm text-primary">View Details &rarr;</span>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Compliance Trend Chart -->
+        <div class="card bg-base-100 shadow">
+            <div class="card-body">
+                <h3 class="card-title text-base">Compliance Trend</h3>
+                <canvas id="compliance-chart" height="200"></canvas>
+            </div>
+        </div>
+
+        <!-- Order Volume Chart -->
+        <div class="card bg-base-100 shadow">
+            <div class="card-body">
+                <h3 class="card-title text-base">Order Volume</h3>
+                <canvas id="orders-chart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+<script>
+    const days = {{ days }};
+
+    function updateDateRange(newDays) {
+        window.location.href = `{% url 'reports_dashboard' %}?days=${newDays}`;
+    }
+
+    // Compliance Chart
+    fetch(`{% url 'compliance_chart_data' %}?days=${days}`)
+        .then(response => response.json())
+        .then(data => {
+            new Chart(document.getElementById('compliance-chart'), {
+                type: 'line',
+                data: {
+                    labels: data.data.map(d => d.date),
+                    datasets: [{
+                        label: 'Compliance Rate %',
+                        data: data.data.map(d => d.rate),
+                        borderColor: 'rgb(34, 197, 94)',
+                        backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: { callback: v => v + '%' }
+                        },
+                        x: {
+                            ticks: {
+                                maxTicksLimit: 7
+                            }
+                        }
+                    }
+                }
+            });
+        });
+
+    // Orders Chart
+    fetch(`{% url 'order_chart_data' %}?days=${days}`)
+        .then(response => response.json())
+        .then(data => {
+            new Chart(document.getElementById('orders-chart'), {
+                type: 'bar',
+                data: {
+                    labels: data.data.map(d => d.date),
+                    datasets: [{
+                        label: 'Orders',
+                        data: data.data.map(d => d.count),
+                        backgroundColor: 'rgba(59, 130, 246, 0.7)',
+                        borderColor: 'rgb(59, 130, 246)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { stepSize: 1 }
+                        },
+                        x: {
+                            ticks: {
+                                maxTicksLimit: 7
+                            }
+                        }
+                    }
+                }
+            });
+        });
+</script>
+{% endblock %}

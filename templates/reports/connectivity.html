@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% load core_tags %}
+
+{% block title %}Connectivity Report - CareAtlas Ops{% endblock %}
+
+{% block breadcrumbs %}
+<li><a href="{% url 'reports_dashboard' %}">Reports</a></li>
+<li>Connectivity</li>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Page Header -->
+    <div class="flex justify-between items-center">
+        <div>
+            <h1 class="text-2xl font-bold">Connectivity Report</h1>
+            <p class="text-base-content/60">Offline device trends and status</p>
+        </div>
+        <select class="select select-bordered"
+                hx-get="{% url 'connectivity_report' %}"
+                hx-target="#connectivity-content"
+                hx-push-url="true"
+                name="days">
+            <option value="7" {% if days == 7 %}selected{% endif %}>Last 7 days</option>
+            <option value="30" {% if days == 30 %}selected{% endif %}>Last 30 days</option>
+            <option value="90" {% if days == 90 %}selected{% endif %}>Last 90 days</option>
+        </select>
+    </div>
+
+    <div id="connectivity-content">
+        {% include "reports/partials/connectivity_table.html" %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+    // Initialize chart if canvas exists
+    const chartCanvas = document.getElementById('connectivity-trend-chart');
+    if (chartCanvas) {
+        fetch(`{% url 'connectivity_chart_data' %}?days={{ days }}`)
+            .then(response => response.json())
+            .then(data => {
+                new Chart(chartCanvas, {
+                    type: 'line',
+                    data: {
+                        labels: data.data.map(d => d.date),
+                        datasets: [{
+                            label: 'Offline Devices',
+                            data: data.data.map(d => d.offline),
+                            borderColor: 'rgb(239, 68, 68)',
+                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                            fill: true,
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: { display: false }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: { stepSize: 1 }
+                            },
+                            x: {
+                                ticks: { maxTicksLimit: 7 }
+                            }
+                        }
+                    }
+                });
+            });
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,284 @@
+/* CareAtlas Ops Dashboard - Custom Styles */
+
+/* Override DaisyUI theme colors for healthcare brand */
+:root {
+    --primary: #2563eb;
+    --primary-focus: #1d4ed8;
+    --primary-content: #ffffff;
+
+    --secondary: #7c3aed;
+    --secondary-focus: #6d28d9;
+    --secondary-content: #ffffff;
+
+    --accent: #0d9488;
+    --accent-focus: #0f766e;
+    --accent-content: #ffffff;
+
+    --neutral: #1f2937;
+    --neutral-focus: #111827;
+    --neutral-content: #ffffff;
+}
+
+/* Smooth page transitions */
+.htmx-settling {
+    transition: opacity 0.15s ease-out;
+}
+
+.htmx-swapping {
+    opacity: 0.5;
+    transition: opacity 0.15s ease-out;
+}
+
+/* Loading indicators */
+.htmx-request .loading-indicator {
+    display: inline-block;
+}
+
+.loading-indicator {
+    display: none;
+}
+
+/* Card hover effects */
+.card-hover:hover {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    transform: translateY(-1px);
+    transition: all 0.2s ease-in-out;
+}
+
+/* Table row hover */
+.table tr.hover:hover {
+    background-color: var(--b2, oklch(var(--b2)));
+}
+
+/* Status badge animations */
+.badge {
+    transition: all 0.2s ease-in-out;
+}
+
+/* Sidebar active state */
+.menu li > a.active {
+    background-color: var(--p, oklch(var(--p)));
+    color: var(--pc, oklch(var(--pc)));
+}
+
+/* Toast animations */
+.toast .alert {
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Chart container */
+.chart-container {
+    position: relative;
+    height: 300px;
+    width: 100%;
+}
+
+/* Timeline improvements */
+.timeline-box {
+    max-width: 300px;
+}
+
+/* Form focus states */
+.input:focus,
+.select:focus,
+.textarea:focus {
+    outline: 2px solid var(--p, oklch(var(--p)));
+    outline-offset: 2px;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--b2, oklch(var(--b2)));
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--bc, oklch(var(--bc) / 0.3));
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--bc, oklch(var(--bc) / 0.5));
+}
+
+/* Print styles */
+@media print {
+    .drawer-side,
+    .navbar,
+    .btn,
+    .toast {
+        display: none !important;
+    }
+
+    .drawer-content {
+        margin-left: 0 !important;
+    }
+
+    .card {
+        break-inside: avoid;
+        box-shadow: none;
+        border: 1px solid #ddd;
+    }
+}
+
+/* Responsive adjustments */
+
+/* === LAYOUT FIX: Prevent content bleeding into sidebar === */
+
+/* Sidebar should sit above everything */
+.drawer-side {
+    z-index: 50 !important;
+}
+
+.drawer-side aside {
+    position: relative;
+    z-index: 50;
+    background-color: var(--b1, oklch(var(--b1)));
+}
+
+/* Main content wrapper - use proper flex layout */
+.drawer-content {
+    display: flex;
+    flex-direction: column;
+    min-width: 0; /* Prevent flex item from overflowing */
+    overflow-x: hidden; /* Prevent content from spilling left */
+    position: relative;
+    z-index: 1;
+}
+
+/* Ensure main content area doesn't overflow */
+.drawer-content main {
+    overflow-x: hidden;
+    position: relative;
+}
+
+/* Connectivity Alerts cards - ensure they stay in bounds */
+.drawer-content .card,
+.drawer-content [class*="alert"] {
+    position: relative;
+    max-width: 100%;
+}
+
+/* Ensure drawer-content is accessible on mobile */
+@media (max-width: 1023px) {
+    .drawer-content {
+        width: 100%;
+        min-width: 100%;
+    }
+}
+
+/* Hide drawer overlay on desktop when drawer is open */
+@media (min-width: 1024px) {
+    .drawer-side > .drawer-overlay {
+        display: none;
+    }
+
+    /* On desktop, sidebar is fixed */
+    .drawer.lg\:drawer-open > .drawer-side {
+        position: sticky;
+        top: 0;
+        height: 100vh;
+    }
+}
+
+/* Stats responsive grid */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+
+@media (min-width: 1024px) {
+    .stats-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+@media (max-width: 640px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Stat card styling for grid layout */
+.stats-grid .stat {
+    padding: 1rem;
+}
+
+/* Legacy stats component fallback */
+@media (max-width: 768px) {
+    .stats {
+        flex-direction: column;
+    }
+
+    .stat {
+        border-bottom: 1px solid var(--b3, oklch(var(--b3)));
+        border-right: none;
+    }
+}
+
+/* Accessibility improvements */
+.btn:focus-visible,
+.link:focus-visible {
+    outline: 2px solid var(--p, oklch(var(--p)));
+    outline-offset: 2px;
+}
+
+/* Data table improvements */
+.table th {
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+}
+
+/* Empty state styling */
+.empty-state {
+    text-align: center;
+    padding: 3rem;
+}
+
+.empty-state svg {
+    opacity: 0.5;
+}
+
+/* Vital reading cards */
+.vital-card {
+    background: linear-gradient(135deg, var(--b1, oklch(var(--b1))) 0%, var(--b2, oklch(var(--b2))) 100%);
+}
+
+.vital-value {
+    font-size: 2rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+/* Order form steps */
+.steps .step::before {
+    transition: all 0.3s ease-in-out;
+}
+
+/* Alert improvements */
+.alert {
+    border-radius: 0.5rem;
+}
+
+/* Modal backdrop */
+.modal-backdrop {
+    backdrop-filter: blur(2px);
+}

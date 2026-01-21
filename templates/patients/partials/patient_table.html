@@ -1,0 +1,73 @@
+<div class="card bg-base-100 shadow">
+    <div class="card-body">
+        <div class="flex justify-between items-center mb-4">
+            <p class="text-sm text-base-content/60">{{ total }} patient{% if total != 1 %}s{% endif %} found</p>
+        </div>
+
+        {% if patients %}
+        <div class="overflow-x-auto">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Patient</th>
+                        <th>MRN</th>
+                        <th>Program</th>
+                        <th>Devices</th>
+                        <th>Status</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for patient in patients %}
+                    <tr class="hover">
+                        <td>
+                            <div class="flex items-center gap-3">
+                                <div class="avatar placeholder">
+                                    <div class="bg-neutral text-neutral-content rounded-full w-10">
+                                        <span>{{ patient.first_name.0 }}{{ patient.last_name.0 }}</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="font-bold">{{ patient.first_name }} {{ patient.last_name }}</div>
+                                    <div class="text-sm opacity-50">{{ patient.email|default:"-" }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>{{ patient.mrn }}</td>
+                        <td><span class="badge badge-outline">{{ patient.program }}</span></td>
+                        <td>{{ patient.devices|length }}</td>
+                        <td>
+                            <span class="badge {% if patient.status == 'active' %}badge-success{% else %}badge-ghost{% endif %} badge-sm">
+                                {{ patient.status|title }}
+                            </span>
+                        </td>
+                        <td>
+                            <a href="{% url 'patient_detail' patient.id %}"
+                               class="btn btn-ghost btn-sm"
+                               hx-get="{% url 'patient_detail' patient.id %}"
+                               hx-target="body"
+                               hx-push-url="true"
+                               hx-indicator="this">
+                                <span class="htmx-indicator loading loading-spinner loading-xs"></span>
+                                <span class="btn-text">View</span>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% include "components/pagination.html" with target_id="patient-list" %}
+
+        {% else %}
+        <div class="text-center py-12 text-base-content/60">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-16 h-16 mx-auto mb-4">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />
+            </svg>
+            <p>No patients found</p>
+            <a href="{% url 'patient_create' %}" class="btn btn-primary btn-sm mt-4">Add Patient</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
